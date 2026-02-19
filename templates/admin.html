@@ -152,7 +152,6 @@
     <div class="header-title">
       <h2>Painel do Administrador</h2>
     </div>
-    <a href="{{ url_for('index') }}" class="btn-link">VER FILA</a>
   </div>
 
   <!-- Stats -->
@@ -165,6 +164,39 @@
       <div class="stat-value green">{{ stat.count }}</div>
     </div>
     {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Daily Statistics -->
+  {% if daily_stats %}
+  <div class="sec-title">Atendimentos diários por colaborador</div>
+  <div class="card mb">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Colaborador</th>
+          <th>Hoje</th>
+          <th>Esta semana</th>
+          <th>Este mês</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stat in daily_stats %}
+        <tr>
+          <td>{{ stat.username }}</td>
+          <td>
+            <span class="stat-value blue">{{ stat.today }}</span>
+          </td>
+          <td>
+            <span class="stat-value green">{{ stat.this_week }}</span>
+          </td>
+          <td>
+            <span class="stat-value">{{ stat.this_month }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
   {% endif %}
 

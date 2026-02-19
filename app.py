@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, emit
 from models import db, User, Queue, Attendance
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
@@ -132,6 +132,47 @@ def skip_task():
         socketio.emit('update_queue')
     return redirect(url_for('index'))
 
+def get_daily_stats():
+    """Calcula estatísticas diárias, semanais e mensais de atendimentos por colaborador"""
+    all_users = User.query.filter_by(is_admin=False).all()
+    daily_stats = []
+    
+    now = datetime.utcnow()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = today_start - timedelta(days=today_start.weekday())
+    month_start = today_start.replace(day=1)
+    
+    for user in all_users:
+        # Atendimentos de hoje
+        today_count = Attendance.query.filter(
+            Attendance.user_id == user.id,
+            Attendance.finished_at != None,
+            Attendance.finished_at >= today_start
+        ).count()
+        
+        # Atendimentos desta semana
+        week_count = Attendance.query.filter(
+            Attendance.user_id == user.id,
+            Attendance.finished_at != None,
+            Attendance.finished_at >= week_start
+        ).count()
+        
+        # Atendimentos deste mês
+        month_count = Attendance.query.filter(
+            Attendance.user_id == user.id,
+            Attendance.finished_at != None,
+            Attendance.finished_at >= month_start
+        ).count()
+        
+        daily_stats.append({
+            'username': user.username,
+            'today': today_count,
+            'this_week': week_count,
+            'this_month': month_count
+        })
+    
+    return daily_stats
+
 # --- ROTA ADMIN ---
 @app.route('/admin')
 @login_required
@@ -147,8 +188,14 @@ def admin():
         if not user.is_admin:
             count = Attendance.query.filter_by(user_id=user.id).filter(Attendance.finished_at != None).count()
             stats.append({'id': user.id, 'username': user.username, 'count': count})
+    
+    # Obter estatísticas diárias
+    daily_stats = get_daily_stats()
+    
+    # Pegar a fila completa para exibir no painel admin
+    queue_list = Queue.query.order_by(Queue.entered_at.asc()).all()
         
-    return render_template('admin.html', stats=stats, history=history, all_users=all_users)
+    return render_template('admin.html', stats=stats, history=history, all_users=all_users, daily_stats=daily_stats, queue=queue_list)
 
 @app.route('/admin/create_user', methods=['POST'])
 @login_required
@@ -213,7 +260,7 @@ if __name__ == '__main__':
     print("🚀 SERVIDOR INICIADO COM SUCESSO!")
     print("="*60)
     print("\n📍 Acesse o sistema em seu navegador:")
-    print("   👉 http://localhost:5000")
-    print("   👉 http://127.0.0.1:5000")
+    print("   👉 http://localhost:5001")
+    print("   👉 http://127.0.0.1:5001")
     print("\n" + "="*60 + "\n")
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5001)
