@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="app-main">
+  
+  <!-- ========================================
+       CASO 1: USUÁRIO NÃO ESTÁ NA FILA
+       ======================================== -->
+  {% if not user_entry %}
+  <div class="fora-card">
+    <p>Você não está na fila no momento.</p>
+    <form action="{{ url_for('join_queue') }}" method="POST">
+      <button type="submit" class="btn-entrar">ENTRAR NA FILA</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- ========================================
+       CASO 2: USUÁRIO ESTÁ NA FILA (AGUARDANDO)
+       ======================================== -->
+  {% if user_entry and user_entry.status == 'Disponível' %}
+  
+    <!-- Verificar se é a vez do usuário -->
+    {% if turn_user and turn_user.user_id == current_user.id %}
+    
+    <!-- CARD: É A SUA VEZ! -->
+    <div class="vez-card">
+      <div class="card-chip chip-green">▶ É A SUA VEZ</div>
+      <div class="card-name">{{ current_user.username }}</div>
+      <div class="btn-row">
+        <form action="{{ url_for('start_task') }}" method="POST">
+          <button type="submit" class="btn-green">INICIAR</button>
+        </form>
+        <form action="{{ url_for('skip_task') }}" method="POST">
+          <button type="submit" class="btn-skip">PULAR</button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Popup de notificação -->
+    <div class="popup show" id="popup-turn">
+      <button class="popup-close" onclick="this.parentElement.classList.remove('show')">×</button>
+      <div class="popup-title">▶ SUA VEZ</div>
+      <div class="popup-msg">É a sua vez! Clique em Iniciar para começar.</div>
+    </div>
+    
+    {% else %}
+    
+    <!-- CARD: AGUARDANDO SUA VEZ -->
+    {% set posicao = namespace(value=0) %}
+    {% for entry in queue %}
+      {% if entry.user_id == current_user.id %}
+        {% set posicao.value = loop.index %}
+      {% endif %}
+    {% endfor %}
+    
+    <div class="aguard-card">
+      <div>
+        <div class="sec-title" style="margin-bottom:0.2rem">Posição na fila</div>
+        <div style="font-size:0.72rem; color:var(--muted)">Aguardando sua vez</div>
+      </div>
+      <div>
+        <div class="pos-num">{{ posicao.value }}°<small>na fila</small></div>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <form action="{{ url_for('leave_queue') }}" method="POST">
+        <button type="submit" class="btn-sair-fila">Sair da fila</button>
+      </form>
+    </div>
+    
+    {% endif %}
+  {% endif %}
+
+  <!-- ========================================
+       CASO 3: USUÁRIO ESTÁ ANALISANDO
+       ======================================== -->
+  {% if user_entry and user_entry.status == 'Analisando' %}
+  <div class="analis-card">
+    <div>
+      <div class="card-chip chip-yellow">● ANALISANDO</div>
+      <div style="font-size:0.78rem; color:var(--muted); margin-top:0.25rem;">Você está analisando uma demanda.</div>
+    </div>
+    <form action="{{ url_for('finish_task') }}" method="POST">
+      <button type="submit" class="btn-yellow">FINALIZAR</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- ========================================
+       LISTA DA FILA
+       ======================================== -->
+  <div class="sec-title">Fila atual</div>
+  <div class="fila-list">
+    {% if not queue %}
+      <div class="fora-card" style="padding: 1.5rem;">
+        <p style="margin-bottom: 0;">Ninguém na fila no momento.</p>
+      </div>
+    {% else %}
+      {% for entry in queue %}
+      <div class="fila-item 
+        {% if loop.first and entry.status == 'Disponível' %}vez{% endif %}
+        {% if entry.status == 'Analisando' %}analisando{% endif %}
+        {% if entry.user_id == current_user.id %}eu{% endif %}">
+        
+        <div class="fila-pos">{{ loop.index }}</div>
+        
+        <div class="fila-info">
+          <div class="fila-nome">
+            {{ entry.user.username }}
+            {% if entry.user_id == current_user.id %}(Você){% endif %}
+          </div>
+          <div class="fila-status 
+            {% if entry.status == 'Disponível' and loop.first %}green{% endif %}
+            {% if entry.status == 'Analisando' %}yellow{% endif %}">
+            {% if loop.first and entry.status == 'Disponível' %}Na vez{% else %}{{ entry.status }}{% endif %}
+          </div>
+        </div>
+        
+        {% if entry.user_id == current_user.id %}
+        <span class="badge-eu">você</span>
+        {% endif %}
+        
+        {% if loop.first and entry.status == 'Disponível' %}
+        <span class="badge-eu" style="background:var(--info-dim); color:var(--info)">NA VEZ</span>
+        {% endif %}
+        
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Verificar se é a vez do usuário (variável definida pelo Flask)
+  var isMyTurn = {{ 'true' if turn_user and turn_user.user_id == current_user.id else 'false' }};
+  
+  if (isMyTurn) {
+    // Tocar som de notificação
+    var audio = document.getElementById('notificationSound');
+    if (audio) {
+      audio.play().catch(function(e) { console.log("Som bloqueado pelo navegador até interação do usuário."); });
+    }
+
+    // Notificação Pop-up (Browser Notification API)
+    if ("Notification" in window) {
+      if (Notification.permission === "granted") {
+        new Notification("Sua Vez!", {
+          body: "É a sua vez na fila. Inicie sua tarefa.",
+          icon: "https://cdn-icons-png.flaticon.com/512/1827/1827347.png"
+        });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission();
+      }
+    }
+  }
+</script>
+{% endblock %}

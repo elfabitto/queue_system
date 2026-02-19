@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Sistema de Fila</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d0d0f;
+  --surface: #141416;
+  --border: #1e1e22;
+  --accent: #4ade80;
+  --accent-dim: #4ade8018;
+  --accent-glow: #4ade8040;
+  --danger: #f87171;
+  --danger-dim: #f8717118;
+  --text: #e8e8ea;
+  --muted: #5a5a64;
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+}
+
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: radial-gradient(ellipse at 50% 0%, #4ade8008 0%, transparent 60%);
+  padding: 1rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 2.5rem 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  animation: fade-up 0.4s ease;
+}
+
+@keyframes fade-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.logo { text-align: center; margin-bottom: 2rem; }
+
+.logo-dot {
+  display: inline-block;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 24px #4ade8055;
+  margin-bottom: 0.75rem;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 16px #4ade8044; }
+  50% { box-shadow: 0 0 32px #4ade8088; }
+}
+
+.logo h1 {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem; font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.logo p { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+
+label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+
+input[type=text], input[type=password] {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 1rem;
+}
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); }
+
+.btn-primary {
+  width: 100%;
+  padding: 0.7rem;
+  background: var(--accent);
+  color: #0d0d0f;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s;
+  margin-top: 0.25rem;
+}
+.btn-primary:hover { opacity: 0.88; box-shadow: 0 0 18px var(--accent-glow); }
+.btn-primary:active { transform: scale(0.98); }
+
+.hint {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.flash-msg {
+  padding: 0.75rem 1rem;
+  background: var(--danger-dim);
+  border: 1px solid #f8717140;
+  border-left: 3px solid var(--danger);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  animation: slide-in 0.3s ease;
+}
+
+@keyframes slide-in {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <h1>FILA</h1>
+      <p>Sistema de Fila Interna</p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="flash-msg">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <label>Usuário</label>
+      <input type="text" name="username" placeholder="seu_usuario" required autofocus>
+      
+      <label>Senha</label>
+      <input type="password" name="password" placeholder="••••••••" required>
+      
+      <button type="submit" class="btn-primary">ENTRAR</button>
+    </form>
+
+    <p class="hint">Dica: admin/123 ou colaborador1/123</p>
+  </div>
+</div>
+
+</body>
+</html>

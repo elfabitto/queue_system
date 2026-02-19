@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Fila — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d0d0f;
+  --surface: #141416;
+  --surface2: #18181c;
+  --border: #1e1e22;
+  --border2: #27272e;
+  --accent: #4ade80;
+  --accent-dim: #4ade8018;
+  --accent-glow: #4ade8040;
+  --warn: #facc15;
+  --warn-dim: #facc1518;
+  --info: #60a5fa;
+  --info-dim: #60a5fa18;
+  --danger: #f87171;
+  --danger-dim: #f8717118;
+  --text: #e8e8ea;
+  --muted: #5a5a64;
+  --muted2: #2e2e36;
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+}
+
+/* NAV DEMO */
+.demo-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: #0a0a0c;
+  border-bottom: 1px solid #1a1a1f;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+}
+
+.demo-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  padding-right: 0.75rem;
+  border-right: 1px solid var(--border);
+  margin-right: 0.25rem;
+}
+
+.tab {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.tab:hover { border-color: var(--border2); color: var(--text); }
+.tab.active { background: var(--accent-dim); border-color: #4ade8040; color: var(--accent); }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── TELA DE LOGIN ── */
+.login-wrap {
+  min-height: calc(100vh - 45px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: radial-gradient(ellipse at 50% 0%, #4ade8008 0%, transparent 60%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 2.5rem 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  animation: fade-up 0.4s ease;
+}
+
+@keyframes fade-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.logo { text-align: center; margin-bottom: 2rem; }
+
+.logo-dot {
+  display: inline-block;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 24px #4ade8055;
+  margin-bottom: 0.75rem;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 16px #4ade8044; }
+  50% { box-shadow: 0 0 32px #4ade8088; }
+}
+
+.logo h1 {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem; font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.logo p { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+
+label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+
+input[type=email], input[type=password], input[type=text] {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 1rem;
+}
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--muted); }
+
+.btn-primary {
+  width: 100%;
+  padding: 0.7rem;
+  background: var(--accent);
+  color: #0d0d0f;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s;
+  margin-top: 0.25rem;
+}
+.btn-primary:hover { opacity: 0.88; box-shadow: 0 0 18px var(--accent-glow); }
+.btn-primary:active { transform: scale(0.98); }
+
+/* ── HEADER ── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.hdr-logo { display: flex; align-items: center; gap: 0.5rem; }
+
+.hdr-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px #4ade8077;
+}
+
+.hdr-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.hdr-right { display: flex; align-items: center; gap: 0.75rem; }
+.hdr-user { font-size: 0.78rem; color: var(--muted); }
+
+.btn-ghost {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  padding: 0.3rem 0.65rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-ghost:hover { border-color: var(--danger); color: var(--danger); }
+
+.app-main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+/* ── CARDS DE STATUS ── */
+.vez-card {
+  background: var(--accent-dim);
+  border: 1px solid #4ade8030;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%,100% { box-shadow: 0 0 0 0 #4ade8010; }
+  50% { box-shadow: 0 0 0 8px #4ade8006; }
+}
+
+.card-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.35rem;
+}
+
+.chip-green { color: var(--accent); }
+.chip-yellow { color: var(--warn); }
+.chip-blue { color: var(--info); }
+
+.card-name { font-size: 1.05rem; font-weight: 500; }
+.card-sub { font-size: 0.76rem; color: var(--muted); margin-top: 0.15rem; }
+
+.btn-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.btn-green {
+  flex: 1;
+  padding: 0.6rem;
+  background: var(--accent);
+  color: #0d0d0f;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-green:hover { opacity: 0.88; box-shadow: 0 0 14px var(--accent-glow); }
+
+.btn-skip {
+  flex: 1;
+  padding: 0.6rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-skip:hover { border-color: var(--warn); color: var(--warn); }
+
+.btn-yellow {
+  padding: 0.6rem 1.2rem;
+  background: var(--warn);
+  color: #0d0d0f;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-yellow:hover { opacity: 0.88; }
+
+.aguard-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.pos-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.8rem;
+  font-weight: 300;
+}
+
+.pos-num small {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: right;
+  margin-top: 2px;
+}
+
+.analis-card {
+  background: var(--warn-dim);
+  border: 1px solid #facc1530;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.fora-card {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.fora-card p { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; }
+
+.btn-entrar {
+  padding: 0.65rem 1.75rem;
+  background: var(--accent);
+  color: #0d0d0f;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-entrar:hover { box-shadow: 0 0 18px var(--accent-glow); opacity: 0.9; }
+
+.btn-sair-fila {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.4rem 0.9rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.18s;
+  margin-top: 0.5rem;
+  display: block;
+  margin: 0.5rem auto 1.5rem;
+}
+.btn-sair-fila:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+
+/* ── FILA LIST ── */
+.fila-list { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.fila-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: all 0.25s;
+  animation: item-in 0.3s ease both;
+}
+
+@keyframes item-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.fila-item.vez { background: var(--accent-dim); border-color: #4ade8030; }
+.fila-item.analisando { background: var(--warn-dim); border-color: #facc1528; }
+.fila-item.eu { border-left: 2px solid var(--accent); }
+
+.fila-pos {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted2);
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.fila-info { flex: 1; }
+.fila-nome { font-size: 0.85rem; font-weight: 500; }
+.fila-status { font-size: 0.66rem; margin-top: 1px; color: var(--muted); }
+.fila-status.green { color: var(--accent); }
+.fila-status.yellow { color: var(--warn); }
+
+.badge-eu {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  padding: 0.12rem 0.4rem;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 3px;
+}
+
+/* ── POPUP ── */
+.popup {
+  display: none;
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background: var(--surface);
+  border: 1px solid #4ade8040;
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  max-width: 260px;
+  box-shadow: 0 8px 40px #00000077;
+  z-index: 200;
+  animation: slide-in 0.3s ease;
+}
+
+@keyframes slide-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.popup.show { display: block; }
+.popup-title { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 0.3rem; }
+.popup-msg { font-size: 0.82rem; }
+.popup-close { position: absolute; top: 0.5rem; right: 0.7rem; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; }
+
+/* ── ADMIN PANEL ── */
+.admin-main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.admin-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  padding: 0.18rem 0.45rem;
+  background: var(--info-dim);
+  color: var(--info);
+  border-radius: 4px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+
+.stat-label { font-size: 0.68rem; color: var(--muted); margin-bottom: 0.25rem; }
+.stat-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.75rem;
+  font-weight: 300;
+}
+.stat-value.green { color: var(--accent); }
+.stat-value.blue { color: var(--info); }
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+/* Gráfico */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 75px;
+  margin-top: 0.7rem;
+}
+
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.25rem; }
+
+.bar-fill {
+  width: 100%;
+  background: var(--accent-dim);
+  border-top: 2px solid var(--accent);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.8s cubic-bezier(.4,0,.2,1);
+}
+
+.bar-label { font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--muted); }
+.bar-val { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--accent); }
+
+/* Table */
+.admin-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+.admin-table th { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.08em; color: var(--muted); padding: 0.35rem 0.45rem; border-bottom: 1px solid var(--border); text-align: left; }
+.admin-table td { padding: 0.5rem 0.45rem; font-size: 0.8rem; border-bottom: 1px solid var(--border); }
+.admin-table tr:last-child td { border-bottom: none; }
+
+.status-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+}
+.status-badge.aguardando { background: var(--muted2); color: var(--muted); }
+.status-badge.vez { background: var(--accent-dim); color: var(--accent); }
+.status-badge.analisando { background: var(--warn-dim); color: var(--warn); }
+
+/* Colab row */
+.colab-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.colab-row:last-child { border-bottom: none; }
+.colab-nome { flex: 1; font-size: 0.82rem; }
+.colab-total { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--accent); }
+.colab-media { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); width: 65px; text-align: right; }
+
+/* Form */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.75rem; }
+.form-group label { font-size: 0.65rem; letter-spacing: 0.07em; color: var(--muted); text-transform: uppercase; margin-bottom: 0.28rem; }
+.form-group input { margin-bottom: 0; }
+.form-foot { display: flex; align-items: center; margin-top: 0.7rem; }
+.form-foot label { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--muted); cursor: pointer; text-transform: none; letter-spacing: 0; }
+.btn-criar { margin-left: auto; padding: 0.5rem 1.1rem; background: var(--accent); color: #0d0d0f; font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.05em; border: none; border-radius: 6px; cursor: pointer; transition: all 0.18s; }
+.btn-criar:hover { opacity: 0.88; }
+
+.user-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.user-row:last-child { border-bottom: none; }
+.u-nome { flex: 1; font-size: 0.82rem; }
+.u-email { font-size: 0.68rem; color: var(--muted); }
+.btn-rem { font-family: 'DM Mono', monospace; font-size: 0.6rem; padding: 0.22rem 0.5rem; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 4px; cursor: pointer; transition: all 0.18s; }
+.btn-rem:hover { border-color: var(--danger); color: var(--danger); }
+
+.mb { margin-bottom: 1.5rem; }
+
+/* INTERACTIVE DEMO STATE */
+</style>
+</head>
+<body>
+
+<!-- NAVEGAÇÃO DEMO -->
+<nav class="demo-nav">
+  <span class="demo-label">DEMO</span>
+  <button class="tab active" onclick="showScreen('login')">Login</button>
+  <button class="tab" onclick="showScreen('aguardando')">Colaborador — Aguardando</button>
+  <button class="tab" onclick="showScreen('minha-vez')">Colaborador — Minha Vez</button>
+  <button class="tab" onclick="showScreen('analisando')">Colaborador — Analisando</button>
+  <button class="tab" onclick="showScreen('admin')">Admin</button>
+</nav>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- TELA 1 — LOGIN                          -->
+<!-- ═══════════════════════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="logo">
+        <div class="logo-dot"></div>
+        <h1>FILA</h1>
+        <p>Sistema de Fila Interna</p>
+      </div>
+      <label>Email</label>
+      <input type="email" placeholder="seu@email.com" value="ana@empresa.com">
+      <label>Senha</label>
+      <input type="password" placeholder="••••••••" value="••••••••">
+      <button class="btn-primary" onclick="showScreen('aguardando')">ENTRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- TELA 2 — COLABORADOR AGUARDANDO        -->
+<!-- ═══════════════════════════════════════ -->
+<div id="screen-aguardando" class="screen">
+  <div class="app-header">
+    <div class="hdr-logo">
+      <div class="hdr-dot"></div>
+      <span class="hdr-title">FILA</span>
+    </div>
+    <div class="hdr-right">
+      <span class="hdr-user">Ana Lima</span>
+      <button class="btn-ghost">SAIR</button>
+    </div>
+  </div>
+  <div class="app-main">
+
+    <!-- Status: aguardando -->
+    <div class="aguard-card">
+      <div>
+        <div class="sec-title" style="margin-bottom:0.2rem">Posição na fila</div>
+        <div style="font-size:0.72rem; color:var(--muted)">Aguardando sua vez</div>
+      </div>
+      <div>
+        <div class="pos-num">3°<small>na fila</small></div>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <button class="btn-sair-fila">Sair da fila</button>
+    </div>
+
+    <div class="sec-title">Fila atual</div>
+    <div class="fila-list">
+      <div class="fila-item vez">
+        <div class="fila-pos">1</div>
+        <div class="fila-info">
+          <div class="fila-nome">Carlos Mendes</div>
+          <div class="fila-status green">Na vez</div>
+        </div>
+      </div>
+      <div class="fila-item">
+        <div class="fila-pos">2</div>
+        <div class="fila-info">
+          <div class="fila-nome">Beatriz Costa</div>
+          <div class="fila-status">Disponível</div>
+        </div>
+      </div>
+      <div class="fila-item eu">
+        <div class="fila-pos">3</div>
+        <div class="fila-info">
+          <div class="fila-nome">Ana Lima</div>
+          <div class="fila-status">Disponível</div>
+        </div>
+        <span class="badge-eu">você</span>
+      </div>
+      <div class="fila-item">
+        <div class="fila-pos">4</div>
+        <div class="fila-info">
+          <div class="fila-nome">Diego Rocha</div>
+          <div class="fila-status">Disponível</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- TELA 3 — MINHA VEZ                     -->
+<!-- ═══════════════════════════════════════ -->
+<div id="screen-minha-vez" class="screen">
+  <div class="app-header">
+    <div class="hdr-logo">
+      <div class="hdr-dot"></div>
+      <span class="hdr-title">FILA</span>
+    </div>
+    <div class="hdr-right">
+      <span class="hdr-user">Ana Lima</span>
+      <button class="btn-ghost">SAIR</button>
+    </div>
+  </div>
+  <div class="app-main">
+
+    <!-- É a sua vez! -->
+    <div class="vez-card">
+      <div class="card-chip chip-green">▶ É A SUA VEZ</div>
+      <div class="card-name">Ana Lima</div>
+      <div class="btn-row">
+        <button class="btn-green" onclick="showScreen('analisando')">INICIAR</button>
+        <button class="btn-skip" onclick="showScreen('aguardando')">PULAR</button>
+      </div>
+    </div>
+
+    <div class="sec-title">Fila atual</div>
+    <div class="fila-list">
+      <div class="fila-item vez eu">
+        <div class="fila-pos">1</div>
+        <div class="fila-info">
+          <div class="fila-nome">Ana Lima</div>
+          <div class="fila-status green">Na vez</div>
+        </div>
+        <span class="badge-eu">você</span>
+      </div>
+      <div class="fila-item">
+        <div class="fila-pos">2</div>
+        <div class="fila-info">
+          <div class="fila-nome">Carlos Mendes</div>
+          <div class="fila-status">Disponível</div>
+        </div>
+      </div>
+      <div class="fila-item">
+        <div class="fila-pos">3</div>
+        <div class="fila-info">
+          <div class="fila-nome">Beatriz Costa</div>
+          <div class="fila-status">Disponível</div>
+        </div>
+      </div>
+      <div class="fila-item">
+        <div class="fila-pos">4</div>
+        <div class="fila-info">
+          <div class="fila-nome">Diego Rocha</div>
+          <div class="fila-status">Disponível</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup de notificação -->
+  <div class="popup show" id="popup-demo">
+    <button class="popup-close" onclick="this.parentElement.classList.remove('show')">×</button>
+    <div class="popup-title">▶ SUA VEZ</div>
+    <div class="popup-msg">É a sua vez! Clique em Iniciar para começar.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- TELA 4 — ANALISANDO                    -->
+<!-- ═══════════════════════════════════════ -->
+<div id="screen-analisando" class="screen">
+  <div class="app-header">
+    <div class="hdr-logo">
+      <div class="hdr-dot"></div>
+      <span class="hdr-title">FILA</span>
+    </div>
+    <div class="hdr-right">
+      <span class="hdr-user">Ana Lima</span>
+      <button class="btn-ghost">SAIR</button>
+    </div>
+  </div>
+  <div class="app-main">
+
+    <!-- Analisando -->
+    <div class="analis-card">
+      <div>
+        <div class="card-chip chip-yellow">● ANALISANDO</div>
+        <div style="font-size:0.78rem; color:var(--muted); margin-top:0.25rem;">Você está analisando uma demanda.</div>
+      </div>
+      <button class="btn-yellow" onclick="finalizarDemo()">FINALIZAR</button>
+    </div>
+
+    <div class="sec-title">Fila atual</div>
+    <div class="fila-list">
+      <div class="fila-item vez">
+        <div class="fila-pos">1</div>
+        <div class="fila-info">
+          <div class="fila-nome">Carlos Mendes</div>
+          <div class="fila-status green">Na vez</div>
+        </div>
+      </div>
+      <div class="fila-item">
+        <div class="fila-pos">2</div>
+        <div class="fila-info">
+          <div class="fila-nome">Beatriz Costa</div>
+          <div class="fila-status">Disponível</div>
+        </div>
+      </div>
+      <div class="fila-item">
+        <div class="fila-pos">3</div>
+        <div class="fila-info">
+          <div class="fila-nome">Diego Rocha</div>
+          <div class="fila-status">Disponível</div>
+        </div>
+      </div>
+      <div class="fila-item analisando eu">
+        <div class="fila-pos">4</div>
+        <div class="fila-info">
+          <div class="fila-nome">Ana Lima</div>
+          <div class="fila-status yellow">Analisando</div>
+        </div>
+        <span class="badge-eu">você</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- TELA 5 — ADMIN                         -->
+<!-- ═══════════════════════════════════════ -->
+<div id="screen-admin" class="screen">
+  <div class="app-header">
+    <div class="hdr-logo">
+      <div class="hdr-dot"></div>
+      <span class="hdr-title">FILA</span>
+      <span class="admin-badge">ADMIN</span>
+    </div>
+    <button class="btn-ghost">SAIR</button>
+  </div>
+  <div class="admin-main">
+
+    <!-- Stats -->
+    <div class="sec-title">Resumo de hoje</div>
+    <div class="stats-grid mb">
+      <div class="stat-card">
+        <div class="stat-label">Colaboradores</div>
+        <div class="stat-value blue">6</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Atendimentos hoje</div>
+        <div class="stat-value green">24</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Na fila agora</div>
+        <div class="stat-value">4</div>
+      </div>
+    </div>
+
+    <!-- Gráfico + Fila -->
+    <div class="two-col mb">
+
+      <div class="card">
+        <div class="sec-title">Atendimentos — últimos 7 dias</div>
+        <div class="bar-chart" id="bar-chart">
+          <!-- gerado por JS -->
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title">Fila atual</div>
+        <table class="admin-table">
+          <thead>
+            <tr><th>#</th><th>Nome</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--muted);font-family:'DM Mono',monospace">1</td>
+              <td>Carlos Mendes</td>
+              <td><span class="status-badge vez">Na vez</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--muted);font-family:'DM Mono',monospace">2</td>
+              <td>Beatriz Costa</td>
+              <td><span class="status-badge aguardando">Disponível</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--muted);font-family:'DM Mono',monospace">3</td>
+              <td>Ana Lima</td>
+              <td><span class="status-badge aguardando">Disponível</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--muted);font-family:'DM Mono',monospace">4</td>
+              <td>Diego Rocha</td>
+              <td><span class="status-badge aguardando">Disponível</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Desempenho -->
+    <div class="sec-title">Desempenho por colaborador hoje</div>
+    <div class="card mb">
+      <div class="colab-row">
+        <div class="colab-nome">Carlos Mendes</div>
+        <div class="colab-total">8 atend.</div>
+        <div class="colab-media">~4min</div>
+      </div>
+      <div class="colab-row">
+        <div class="colab-nome">Ana Lima</div>
+        <div class="colab-total">7 atend.</div>
+        <div class="colab-media">~5min</div>
+      </div>
+      <div class="colab-row">
+        <div class="colab-nome">Beatriz Costa</div>
+        <div class="colab-total">5 atend.</div>
+        <div class="colab-media">~3min</div>
+      </div>
+      <div class="colab-row">
+        <div class="colab-nome">Diego Rocha</div>
+        <div class="colab-total">4 atend.</div>
+        <div class="colab-media">~6min</div>
+      </div>
+    </div>
+
+    <!-- Gerenciar usuários -->
+    <div class="sec-title">Gerenciar colaboradores</div>
+    <div class="card">
+      <div>
+        <div class="user-row">
+          <div>
+            <div class="u-nome">Carlos Mendes</div>
+            <div class="u-email">carlos@empresa.com</div>
+          </div>
+          <button class="btn-rem">REMOVER</button>
+        </div>
+        <div class="user-row">
+          <div>
+            <div class="u-nome">Ana Lima</div>
+            <div class="u-email">ana@empresa.com</div>
+          </div>
+          <button class="btn-rem">REMOVER</button>
+        </div>
+        <div class="user-row">
+          <div>
+            <div class="u-nome">Beatriz Costa</div>
+            <div class="u-email">beatriz@empresa.com</div>
+          </div>
+          <button class="btn-rem">REMOVER</button>
+        </div>
+        <div class="user-row">
+          <div>
+            <div class="u-nome">Diego Rocha</div>
+            <div class="u-email">diego@empresa.com</div>
+          </div>
+          <button class="btn-rem">REMOVER</button>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div style="border-top:1px solid var(--border); margin-top:0.75rem; padding-top:0.9rem;">
+        <div class="sec-title">Adicionar colaborador</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" placeholder="Nome completo">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="email@empresa.com">
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" placeholder="Senha inicial">
+          </div>
+        </div>
+        <div class="form-foot">
+          <label><input type="checkbox"> Admin</label>
+          <button class="btn-criar">CRIAR USUÁRIO</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── NAVEGAÇÃO ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+
+  const map = {
+    'login': 0, 'aguardando': 1, 'minha-vez': 2, 'analisando': 3, 'admin': 4
+  };
+  const tabs = document.querySelectorAll('.tab');
+  if (tabs[map[id]]) tabs[map[id]].classList.add('active');
+}
+
+// ── FINALIZAR DEMO ──
+function finalizarDemo() {
+  // Vai pro fim da fila como disponível
+  showScreen('aguardando');
+}
+
+// ── GRÁFICO DE BARRAS ──
+const dados = [
+  { d: '13/02', v: 18 }, { d: '14/02', v: 22 }, { d: '15/02', v: 15 },
+  { d: '16/02', v: 0  }, { d: '17/02', v: 0  }, { d: '18/02', v: 19 },
+  { d: '19/02', v: 24 }
+];
+const maxV = Math.max(...dados.map(d => d.v), 1);
+const chart = document.getElementById('bar-chart');
+chart.innerHTML = dados.map(d => {
+  const pct = Math.max((d.v / maxV) * 100, d.v > 0 ? 4 : 1);
+  return `<div class="bar-col">
+    <div class="bar-val">${d.v > 0 ? d.v : ''}</div>
+    <div class="bar-fill" style="height:${pct}%"></div>
+    <div class="bar-label">${d.d}</div>
+  </div>`;
+}).join('');
+</script>
+
+</body>
+</html>
