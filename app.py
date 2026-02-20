@@ -37,13 +37,35 @@ db.init_app(app)
 with app.app_context():
     from models import User # Import garantido aqui
     db.create_all()
+    usuarios_iniciais = [
+        {'username': 'Jarbas', 'is_admin': False},
+        {'username': 'Maiara', 'is_admin': False},
+        {'username': 'Mariana', 'is_admin': False},
+        {'username': 'Eliene', 'is_admin': False},
+        {'username': 'Lorena', 'is_admin': True},
+        {'username': 'Lucas', 'is_admin': False},
+        {'username': 'Carla', 'is_admin': False},
+        {'username': 'Cristiane', 'is_admin': False},
+        {'username': 'Julio', 'is_admin': False},
+        {'username': 'Marlon', 'is_admin': False},
+        {'username': 'Antonio', 'is_admin': False},
+        {'username': 'Fabio', 'is_admin': False},
+        {'username': 'Ingrid', 'is_admin': False},
+        {'username': 'Eduarda', 'is_admin': False}
+    ]
+    
+    for u_data in usuarios_iniciais:
+        # Só cria se o usuário ainda não existir no banco
+        if not User.query.filter_by(username=u_data['username']).first():
+            senha = f"{u_data['username']}123"
+            novo_usuario = User(username=u_data['username'], password=senha, is_admin=u_data['is_admin'])
+            db.session.add(novo_usuario)
+            
+    # Criar também o admin genérico caso não exista, por segurança
     if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', password='123', is_admin=True)
-        user1 = User(username='colaborador1', password='123')
-        user2 = User(username='colaborador2', password='123')
-        user3 = User(username='colaborador3', password='123')
-        db.session.add_all([admin, user1, user2, user3])
-        db.session.commit()
+        db.session.add(User(username='admin', password='123', is_admin=True))
+        
+    db.session.commit()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
