@@ -1,3 +1,8 @@
+# O eventlet precisa aplicar o monkey patch antes de todas as outras importações 
+# para funcionar corretamente no Gunicorn com o PostgreSQL/SQLAlchemy.
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, emit
