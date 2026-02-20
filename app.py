@@ -9,7 +9,17 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'chave-secreta-fila'
 # Usar caminho absoluto para evitar erros de diretório
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'queue.db')
+
+# Suporte a PostgreSQL no Render ou SQLite local (fallback)
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # O SQLAlchemy 1.4+ requer que a URL comece com postgresql:// e o Render às vezes fornece postgres://
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'queue.db')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
