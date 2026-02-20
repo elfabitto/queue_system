@@ -23,6 +23,19 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
+# Inicializar o banco de dados automaticamente
+with app.app_context():
+    from models import User # Import garantido aqui
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', password='123', is_admin=True)
+        user1 = User(username='colaborador1', password='123')
+        user2 = User(username='colaborador2', password='123')
+        user3 = User(username='colaborador3', password='123')
+        db.session.add_all([admin, user1, user2, user3])
+        db.session.commit()
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -252,20 +265,7 @@ def delete_user(user_id):
     socketio.emit('update_queue')
     return redirect(url_for('admin'))
 
-# Inicializar Banco de Dados com alguns usuários de teste
-def init_db():
-    with app.app_context():
-        db.create_all()
-        if not User.query.filter_by(username='admin').first():
-            admin = User(username='admin', password='123', is_admin=True)
-            user1 = User(username='colaborador1', password='123')
-            user2 = User(username='colaborador2', password='123')
-            user3 = User(username='colaborador3', password='123')
-            db.session.add_all([admin, user1, user2, user3])
-            db.session.commit()
-
 if __name__ == '__main__':
-    init_db()
     print("\n" + "="*60)
     print("🚀 SERVIDOR INICIADO COM SUCESSO!")
     print("="*60)

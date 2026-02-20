@@ -44,20 +44,15 @@ O Render precisa puxar seu código de algum lugar. A forma mais fácil é pelo G
    - **Value**: Coloque aqui a URI que você copiou do Supabase no Passo 1!
 6. Clique em **"Create Web Service"**.
 
-## Passo 4: Criar as Tabelas no Banco de Dados
+## Passo 4: Primeiro Acesso (Criação do Banco de Dados)
 
-Quando o Render terminar de construir seu aplicativo e der o status "Live", as tabelas do seu banco de dados estarão vazias (os usuários de teste não existirão ainda no PostgreSQL).
+Quando o Render terminar de construir seu aplicativo e der o status "Live", o sistema já estará pronto!
 
-Para criar as tabelas automaticamente pela primeira vez:
 1. Acesse o URL gerado pelo Render do seu aplicativo.
-2. Vai dar um erro na primeira vez, não se assuste.
-3. Isso quer dizer que precisamos rodar a inicialização.
-4. No Dashboard do Render, vá no seu Web Service, clique na aba **"Shell"**.
-5. No terminal que abrir dentro do site do Render, digite:
-   ```bash
-   python init_db.py
-   ```
-6. Pronto! Agora acesse novamente o link do seu sistema. As tabelas foram criadas e os usuários de teste (admin/123) estarão lá.
+2. Na primeira vez que a página abrir, o sistema vai **automaticamente** criar as tabelas no seu banco PostgreSQL no Supabase.
+3. Os usuários de teste (`admin`/`123` e os colaboradores) também serão criados automaticamente neste primeiro acesso.
+
+Você já pode fazer login e começar a usar!
 
 ## Considerações Importantes
 
