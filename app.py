@@ -169,21 +169,21 @@ def get_daily_stats():
         # Atendimentos de hoje
         today_count = Attendance.query.filter(
             Attendance.user_id == user.id,
-            Attendance.finished_at != None,
+            Attendance.finished_at.isnot(None),
             Attendance.finished_at >= today_start
         ).count()
         
         # Atendimentos desta semana
         week_count = Attendance.query.filter(
             Attendance.user_id == user.id,
-            Attendance.finished_at != None,
+            Attendance.finished_at.isnot(None),
             Attendance.finished_at >= week_start
         ).count()
         
         # Atendimentos deste mês
         month_count = Attendance.query.filter(
             Attendance.user_id == user.id,
-            Attendance.finished_at != None,
+            Attendance.finished_at.isnot(None),
             Attendance.finished_at >= month_start
         ).count()
         
@@ -204,12 +204,12 @@ def admin():
         return redirect(url_for('index'))
     
     all_users = User.query.all()
-    history = Attendance.query.filter(Attendance.finished_at != None).order_by(Attendance.finished_at.desc()).limit(50).all()
+    history = Attendance.query.filter(Attendance.finished_at.isnot(None)).order_by(Attendance.finished_at.desc()).limit(50).all()
     
     stats = []
     for user in all_users:
         if not user.is_admin:
-            count = Attendance.query.filter_by(user_id=user.id).filter(Attendance.finished_at != None).count()
+            count = Attendance.query.filter_by(user_id=user.id).filter(Attendance.finished_at.isnot(None)).count()
             stats.append({'id': user.id, 'username': user.username, 'count': count})
     
     # Obter estatísticas diárias
