@@ -136,6 +136,17 @@
 
 {% block scripts %}
 <script>
+  // Registro do Service Worker para Notificações no Windows e Android
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js')
+      .then(function(registration) {
+        console.log('Service Worker registrado com sucesso:', registration.scope);
+      })
+      .catch(function(error) {
+        console.log('Falha ao registrar o Service Worker:', error);
+      });
+  }
+
   // Verificar se é a vez do usuário (variável definida pelo Flask)
   var isMyTurn = {{ 'true' if turn_user and turn_user.user_id == current_user.id else 'false' }};
   
@@ -146,16 +157,18 @@
       audio.play().catch(function(e) { console.log("Som bloqueado pelo navegador até interação do usuário."); });
     }
 
-    // Notificação Pop-up (Browser Notification API)
-    if ("Notification" in window) {
-      if (Notification.permission === "granted") {
-        new Notification("Sua Vez!", {
+    // Notificação persistente usando Service Worker
+    if (Notification.permission === "granted") {
+      navigator.serviceWorker.ready.then(function(registration) {
+        registration.showNotification("Sua Vez!", {
           body: "É a sua vez na fila. Inicie sua tarefa.",
-          icon: "https://cdn-icons-png.flaticon.com/512/1827/1827347.png"
+          icon: "https://cdn-icons-png.flaticon.com/512/1827/1827347.png",
+          vibrate: [200, 100, 200],
+          requireInteraction: true
         });
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission();
-      }
+      });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission();
     }
   }
 </script>
