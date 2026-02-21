@@ -73,6 +73,34 @@ login_manager.login_view = 'login'
 
 socketio = SocketIO(app)
 
+user_connections = {}
+
+@socketio.on('connect')
+def on_connect():
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        user_connections[user_id] = user_connections.get(user_id, 0) + 1
+
+@socketio.on('disconnect')
+def on_disconnect():
+    if current_user.is_authenticated:
+        user_id = current_user.id
+        user_connections[user_id] = max(0, user_connections.get(user_id, 0) - 1)
+        
+        if user_connections[user_id] == 0:
+            socketio.start_background_task(handle_user_leave, user_id, app.app_context())
+
+def handle_user_leave(user_id, app_ctx):
+    socketio.sleep(4)
+    if user_connections.get(user_id, 0) == 0:
+        with app_ctx:
+            entry = Queue.query.filter_by(user_id=user_id).first()
+            if entry:
+                db.session.delete(entry)
+                db.session.commit()
+                # Notifica todos para atualizarem a interface
+                socketio.emit('update_queue')
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
