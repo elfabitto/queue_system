@@ -91,7 +91,7 @@ def on_disconnect():
             socketio.start_background_task(handle_user_leave, user_id, app.app_context())
 
 def handle_user_leave(user_id, app_ctx):
-    socketio.sleep(4)
+    socketio.sleep(15)
     if user_connections.get(user_id, 0) == 0:
         with app_ctx:
             entry = Queue.query.filter_by(user_id=user_id).first()
