@@ -386,10 +386,10 @@
           {% else %}
           {% for record in history[:5] %}
           <tr>
-            <td>{{ record.user.username if record.user else 'Desconhecido' }}</td>
+            <td>{{ record.colaborador.username }}</td>
             <td>
               <span style="font-family:'DM Mono',monospace; font-size:0.72rem;">
-                {{ ((record.duration_seconds or 0) // 60) }}m {{ ((record.duration_seconds or 0) % 60) }}s
+                {{ (record.duration_seconds // 60) }}m {{ (record.duration_seconds % 60) }}s
               </span>
             </td>
           </tr>

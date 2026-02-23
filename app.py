@@ -249,7 +249,14 @@ def admin():
         return redirect(url_for('index'))
     
     all_users = User.query.all()
-    history = Attendance.query.filter(Attendance.finished_at.isnot(None)).order_by(Attendance.finished_at.desc()).limit(50).all()
+    # Tratar history explicitamente para evitar erros de renderização no template cego (usando '.colaborador' e 'duration_seconds')
+    raw_history = Attendance.query.filter(Attendance.finished_at.isnot(None)).order_by(Attendance.finished_at.desc()).limit(50).all()
+    history = []
+    for r in raw_history:
+        history.append({
+            'colaborador': {'username': r.user.username if r.user else 'Desconhecido'},
+            'duration_seconds': r.duration_seconds or 0
+        })
     
     stats = []
     for user in all_users:
