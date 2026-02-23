@@ -254,7 +254,7 @@ def admin():
     history = []
     for r in raw_history:
         history.append({
-            'colaborador': {'username': r.user.username if r.user else 'Desconhecido'},
+            'colaborador': {'username': r.colaborador.username if hasattr(r, 'colaborador') and r.colaborador else 'Desconhecido'},
             'duration_seconds': r.duration_seconds or 0
         })
     
