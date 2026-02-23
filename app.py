@@ -83,23 +83,9 @@ def on_connect():
 
 @socketio.on('disconnect')
 def on_disconnect():
-    if current_user.is_authenticated:
-        user_id = current_user.id
-        user_connections[user_id] = max(0, user_connections.get(user_id, 0) - 1)
-        
-        if user_connections[user_id] == 0:
-            socketio.start_background_task(handle_user_leave, user_id, app.app_context())
-
-def handle_user_leave(user_id, app_ctx):
-    socketio.sleep(15)
-    if user_connections.get(user_id, 0) == 0:
-        with app_ctx:
-            entry = Queue.query.filter_by(user_id=user_id).first()
-            if entry:
-                db.session.delete(entry)
-                db.session.commit()
-                # Notifica todos para atualizarem a interface
-                socketio.emit('update_queue')
+    pass
+    # Removida a lógica de auto-remoção da fila a pedido do cliente.
+    # O usuário só sai da fila se clicar explicitly no botão "Sair da fila".
 
 @login_manager.user_loader
 def load_user(user_id):
