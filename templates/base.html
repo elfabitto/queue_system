@@ -443,7 +443,12 @@ html, body {
 <script>
 const socket = io();
 socket.on('update_queue', () => {
-    window.location.reload();
+    // Atraso aleatório pequeno (100 a 1500ms) para evitar que todos os usuários 
+    // recarreguem a página no exato mesmo milissegundo e derrubem o servidor
+    const delay = Math.floor(Math.random() * 1400) + 100;
+    setTimeout(() => {
+        window.location.reload();
+    }, delay);
 });
 </script>
 {% block scripts %}{% endblock %}
