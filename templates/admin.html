@@ -2,6 +2,13 @@
 
 {% block extra_styles %}
 <style>
+  /* Forçar a exibição do ícone do calendário para inputs type="date" em temas escuros */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
   /* Admin Panel Specific Styles */
   .admin-main {
     max-width: 860px;
@@ -283,7 +290,7 @@
 
     <!-- CSV Export Form -->
     <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <form action="{{ url_for('export_csv') }}" method="GET"
+      <form action="{{ url_for('export_xlsx') }}" method="GET"
         style="display: flex; gap: 0.5rem; align-items: center; margin: 0;">
         <label style="font-size: 0.7rem; color: var(--muted);">Início:</label>
         <input type="date" name="start_date"
@@ -295,7 +302,7 @@
           style="padding: 0.3rem; font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--fg);"
           required>
 
-        <button type="submit" class="btn-link" style="margin-left: 0.5rem;">📊 EXPORTAR CSV</button>
+        <button type="submit" class="btn-link" style="margin-left: 0.5rem;">📊 EXPORTAR XLSX</button>
       </form>
     </div>
   </div>
@@ -423,7 +430,7 @@
               <td>{{ record.colaborador.username }}</td>
               <td>
                 <span style="font-family:'DM Mono',monospace; font-size:0.72rem;">
-                  {{ (record.duration_seconds // 60) }}m {{ (record.duration_seconds % 60) }}s
+                  {{ record.duracao }}
                 </span>
               </td>
             </tr>

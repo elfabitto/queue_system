@@ -12,6 +12,19 @@ from datetime import datetime, timedelta
 import os
 import csv
 import io
+from openpyxl import Workbook
+
+def format_duration(seconds):
+    if not seconds:
+        return "0s"
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    if h > 0:
+        return f"{h}h {m}m {s}s"
+    elif m > 0:
+        return f"{m}m {s}s"
+    return f"{s}s"
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'chave-secreta-fila'
@@ -277,7 +290,8 @@ def admin():
     for r in raw_history:
         history.append({
             'colaborador': {'username': r.colaborador.username if hasattr(r, 'colaborador') and r.colaborador else 'Desconhecido'},
-            'duration_seconds': r.duration_seconds or 0
+            'duration_seconds': r.duration_seconds or 0,
+            'duracao': format_duration(r.duration_seconds)
         })
     
     stats = []
@@ -326,7 +340,7 @@ def view_colaborador(user_id):
         history.append({
             'tipo': 'Concluído',
             'data': a.finished_at,
-            'duracao': f"{a.duration_seconds // 60}m {a.duration_seconds % 60}s"
+            'duracao': format_duration(a.duration_seconds)
         })
     for s in skips:
         history.append({
@@ -342,11 +356,11 @@ def view_colaborador(user_id):
                            history=history, 
                            total_concluidos=total_count,
                            total_pulados=len(skips),
-                           avg_time=f"{avg_minutes}m {avg_rem_seconds}s")
+                           avg_time=format_duration(avg_seconds))
 
 @app.route('/admin/export')
 @login_required
-def export_csv():
+def export_xlsx():
     if not current_user.is_admin:
         return redirect(url_for('index'))
         
@@ -404,22 +418,28 @@ def export_csv():
         
     records.sort(key=lambda x: x['data'], reverse=True)
     
-    # Gerar CSV
-    si = io.StringIO()
-    cw = csv.writer(si)
-    cw.writerow(['Data/Hora', 'Colaborador', 'Ação', 'Tempo de Atendimento (Segundos)'])
+    # Gerar XLSX
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Relatório"
+    ws.append(['Data/Hora', 'Colaborador', 'Ação', 'Tempo de Atendimento (Segundos)', 'Tempo de Atendimento (Formatado)'])
     
     for r in records:
-        cw.writerow([
+        ws.append([
             r['data'].strftime('%d/%m/%Y %H:%M:%S'),
             r['colaborador'],
             r['acao'],
-            r['duracao_segundos']
+            r['duracao_segundos'],
+            format_duration(r['duracao_segundos'])
         ])
         
-    output = make_response(si.getvalue())
-    output.headers["Content-Disposition"] = f"attachment; filename=relatorio_atendimentos_{start_date.strftime('%Y%m%d')}_a_{end_date.strftime('%Y%m%d')}.csv"
-    output.headers["Content-type"] = "text/csv"
+    si = io.BytesIO()
+    wb.save(si)
+    si.seek(0)
+    
+    output = make_response(si.read())
+    output.headers["Content-Disposition"] = f"attachment; filename=relatorio_atendimentos_{start_date.strftime('%Y%m%d')}_a_{end_date.strftime('%Y%m%d')}.xlsx"
+    output.headers["Content-type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return output
 
 @app.route('/admin/create_user', methods=['POST'])
