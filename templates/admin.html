@@ -280,6 +280,24 @@
     <div class="header-title">
       <h2>Painel do Administrador</h2>
     </div>
+
+    <!-- CSV Export Form -->
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <form action="{{ url_for('export_csv') }}" method="GET"
+        style="display: flex; gap: 0.5rem; align-items: center; margin: 0;">
+        <label style="font-size: 0.7rem; color: var(--muted);">Início:</label>
+        <input type="date" name="start_date"
+          style="padding: 0.3rem; font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--fg);"
+          required>
+
+        <label style="font-size: 0.7rem; color: var(--muted); margin-left: 0.5rem;">Fim:</label>
+        <input type="date" name="end_date"
+          style="padding: 0.3rem; font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--fg);"
+          required>
+
+        <button type="submit" class="btn-link" style="margin-left: 0.5rem;">📊 EXPORTAR CSV</button>
+      </form>
+    </div>
   </div>
 
   <!-- Stats -->
@@ -289,7 +307,16 @@
     {% for stat in stats %}
     <div class="stat-card">
       <div class="stat-label">{{ stat.username }}</div>
-      <div class="stat-value green">{{ stat.count }}</div>
+      <div style="display: flex; gap: 1rem;">
+        <div>
+          <span style="font-size: 0.65rem; color: var(--muted);">Concluídos:</span>
+          <div class="stat-value green">{{ stat.count }}</div>
+        </div>
+        <div>
+          <span style="font-size: 0.65rem; color: var(--muted);">Pulados:</span>
+          <div class="stat-value" style="color: var(--warn);">{{ stat.skip_count }}</div>
+        </div>
+      </div>
     </div>
     {% endfor %}
   </div>
@@ -313,13 +340,19 @@
         <tr>
           <td>{{ stat.username }}</td>
           <td>
-            <span class="stat-value blue">{{ stat.today }}</span>
+            <div>Con: <span class="stat-value blue">{{ stat.today }}</span></div>
+            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Pul: <span
+                style="color: var(--warn);">{{ stat.today_skips }}</span></div>
           </td>
           <td>
-            <span class="stat-value green">{{ stat.this_week }}</span>
+            <div>Con: <span class="stat-value green">{{ stat.this_week }}</span></div>
+            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Pul: <span
+                style="color: var(--warn);">{{ stat.week_skips }}</span></div>
           </td>
           <td>
-            <span class="stat-value">{{ stat.this_month }}</span>
+            <div>Con: <span class="stat-value">{{ stat.this_month }}</span></div>
+            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Pul: <span
+                style="color: var(--warn);">{{ stat.month_skips }}</span></div>
           </td>
         </tr>
         {% endfor %}
@@ -371,32 +404,34 @@
     <!-- Histórico Recente -->
     <div class="card">
       <div class="sec-title">Últimos atendimentos</div>
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Colaborador</th>
-            <th>Duração</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if not history %}
-          <tr>
-            <td colspan="2" style="text-align:center; color:var(--muted); padding: 1rem;">Nenhum atendimento</td>
-          </tr>
-          {% else %}
-          {% for record in history[:5] %}
-          <tr>
-            <td>{{ record.colaborador.username }}</td>
-            <td>
-              <span style="font-family:'DM Mono',monospace; font-size:0.72rem;">
-                {{ (record.duration_seconds // 60) }}m {{ (record.duration_seconds % 60) }}s
-              </span>
-            </td>
-          </tr>
-          {% endfor %}
-          {% endif %}
-        </tbody>
-      </table>
+      <div style="max-height: 380px; overflow-y: auto; padding-right: 5px;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Colaborador</th>
+              <th>Duração</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if not history %}
+            <tr>
+              <td colspan="2" style="text-align:center; color:var(--muted); padding: 1rem;">Nenhum atendimento</td>
+            </tr>
+            {% else %}
+            {% for record in history %}
+            <tr>
+              <td>{{ record.colaborador.username }}</td>
+              <td>
+                <span style="font-family:'DM Mono',monospace; font-size:0.72rem;">
+                  {{ (record.duration_seconds // 60) }}m {{ (record.duration_seconds % 60) }}s
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -415,14 +450,20 @@
         </div>
         <div class="u-email">{{ user.email }}</div>
       </div>
-      {% if user.id != current_user.id %}
-      <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST"
-        onsubmit="return confirm('Tem certeza que deseja remover este usuário?')" style="display:inline;">
-        <button type="submit" class="btn-rem">REMOVER</button>
-      </form>
-      {% else %}
-      <span style="font-size: 0.65rem; color: var(--muted); font-style: italic;">Você</span>
-      {% endif %}
+      <div style="display: flex; gap: 0.5rem;">
+        {% if not user.is_admin %}
+        <a href="{{ url_for('view_colaborador', user_id=user.id) }}" class="btn-link"
+          style="padding: 0.22rem 0.5rem;">DETALHES</a>
+        {% endif %}
+        {% if user.id != current_user.id %}
+        <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST"
+          onsubmit="return confirm('Tem certeza que deseja remover este usuário?')" style="margin:0;">
+          <button type="submit" class="btn-rem">REMOVER</button>
+        </form>
+        {% else %}
+        <span style="font-size: 0.65rem; color: var(--muted); font-style: italic; align-self: center;">Você</span>
+        {% endif %}
+      </div>
     </div>
     {% endfor %}
 

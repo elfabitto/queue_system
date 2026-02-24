@@ -6,9 +6,12 @@ eventlet.monkey_patch()
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, emit
-from models import db, User, Queue, Attendance
+from models import db, User, Queue, Attendance, Skip
+from flask import make_response
 from datetime import datetime, timedelta
 import os
+import csv
+import io
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'chave-secreta-fila'
@@ -194,6 +197,10 @@ def finish_task():
 def skip_task():
     entry = Queue.query.filter_by(user_id=current_user.id).first()
     if entry and entry.status == 'Disponível':
+        # Registrar o pulo no banco de dados
+        skip = Skip(user_id=current_user.id)
+        db.session.add(skip)
+        
         # Mover para o fim da fila sem registrar atendimento
         entry.entered_at = datetime.utcnow()
         db.session.commit()
@@ -217,12 +224,20 @@ def get_daily_stats():
             Attendance.finished_at.isnot(None),
             Attendance.finished_at >= today_start
         ).count()
+        today_skips = Skip.query.filter(
+            Skip.user_id == user.id,
+            Skip.skipped_at >= today_start
+        ).count()
         
         # Atendimentos desta semana
         week_count = Attendance.query.filter(
             Attendance.user_id == user.id,
             Attendance.finished_at.isnot(None),
             Attendance.finished_at >= week_start
+        ).count()
+        week_skips = Skip.query.filter(
+            Skip.user_id == user.id,
+            Skip.skipped_at >= week_start
         ).count()
         
         # Atendimentos deste mês
@@ -231,12 +246,19 @@ def get_daily_stats():
             Attendance.finished_at.isnot(None),
             Attendance.finished_at >= month_start
         ).count()
+        month_skips = Skip.query.filter(
+            Skip.user_id == user.id,
+            Skip.skipped_at >= month_start
+        ).count()
         
         daily_stats.append({
             'username': user.username,
             'today': today_count,
+            'today_skips': today_skips,
             'this_week': week_count,
-            'this_month': month_count
+            'week_skips': week_skips,
+            'this_month': month_count,
+            'month_skips': month_skips
         })
     
     return daily_stats
@@ -262,7 +284,8 @@ def admin():
     for user in all_users:
         if not user.is_admin:
             count = Attendance.query.filter_by(user_id=user.id).filter(Attendance.finished_at.isnot(None)).count()
-            stats.append({'id': user.id, 'username': user.username, 'count': count})
+            skip_count = Skip.query.filter_by(user_id=user.id).count()
+            stats.append({'id': user.id, 'username': user.username, 'count': count, 'skip_count': skip_count})
     
     # Obter estatísticas diárias
     daily_stats = get_daily_stats()
@@ -271,6 +294,133 @@ def admin():
     queue_list = Queue.query.order_by(Queue.entered_at.asc()).all()
         
     return render_template('admin.html', stats=stats, history=history, all_users=all_users, daily_stats=daily_stats, queue=queue_list)
+
+@app.route('/admin/colaborador/<int:user_id>')
+@login_required
+def view_colaborador(user_id):
+    if not current_user.is_admin:
+        return redirect(url_for('index'))
+        
+    user = User.query.get_or_404(user_id)
+    
+    # Todos os atendimentos concluídos
+    attendances = Attendance.query.filter(
+        Attendance.user_id == user.id, 
+        Attendance.finished_at.isnot(None)
+    ).order_by(Attendance.finished_at.desc()).all()
+    
+    # Todos os pulos
+    skips = Skip.query.filter_by(user_id=user.id).order_by(Skip.skipped_at.desc()).all()
+    
+    # Calcular tempo médio
+    total_seconds = sum(a.duration_seconds for a in attendances if a.duration_seconds)
+    total_count = len(attendances)
+    avg_seconds = total_seconds // total_count if total_count > 0 else 0
+    
+    avg_minutes = avg_seconds // 60
+    avg_rem_seconds = avg_seconds % 60
+    
+    # Misturar e ordenar o histórico real
+    history = []
+    for a in attendances:
+        history.append({
+            'tipo': 'Concluído',
+            'data': a.finished_at,
+            'duracao': f"{a.duration_seconds // 60}m {a.duration_seconds % 60}s"
+        })
+    for s in skips:
+        history.append({
+            'tipo': 'Pulado',
+            'data': s.skipped_at,
+            'duracao': "-"
+        })
+        
+    history.sort(key=lambda x: x['data'], reverse=True)
+    
+    return render_template('colaborador_detail.html', 
+                           user=user, 
+                           history=history, 
+                           total_concluidos=total_count,
+                           total_pulados=len(skips),
+                           avg_time=f"{avg_minutes}m {avg_rem_seconds}s")
+
+@app.route('/admin/export')
+@login_required
+def export_csv():
+    if not current_user.is_admin:
+        return redirect(url_for('index'))
+        
+    # Definir período: mês atual por padrão, mas pode receber parametros
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    
+    now = datetime.utcnow()
+    try:
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        else:
+            start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            # Incluir o dia inteiro até as 23:59:59
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+        else:
+            end_date = now
+    except ValueError:
+        flash("Formato de data inválido. Use AAAA-MM-DD.")
+        return redirect(url_for('admin'))
+        
+    # Buscar concluidos
+    attendances = Attendance.query.filter(
+        Attendance.finished_at.isnot(None),
+        Attendance.finished_at >= start_date,
+        Attendance.finished_at <= end_date
+    ).all()
+    
+    # Buscar pulados
+    skips = Skip.query.filter(
+        Skip.skipped_at >= start_date,
+        Skip.skipped_at <= end_date
+    ).all()
+    
+    # Combinar e ordenar (cronologicamente)
+    records = []
+    for a in attendances:
+        records.append({
+            'data': a.finished_at,
+            'colaborador': a.colaborador.username if a.colaborador else 'Desconhecido',
+            'acao': 'Concluído',
+            'duracao_segundos': a.duration_seconds or 0
+        })
+        
+    for s in skips:
+        records.append({
+            'data': s.skipped_at,
+            'colaborador': s.user.username if s.user else 'Desconhecido',
+            'acao': 'Pulado',
+            'duracao_segundos': 0
+        })
+        
+    records.sort(key=lambda x: x['data'], reverse=True)
+    
+    # Gerar CSV
+    si = io.StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['Data/Hora', 'Colaborador', 'Ação', 'Tempo de Atendimento (Segundos)'])
+    
+    for r in records:
+        cw.writerow([
+            r['data'].strftime('%d/%m/%Y %H:%M:%S'),
+            r['colaborador'],
+            r['acao'],
+            r['duracao_segundos']
+        ])
+        
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = f"attachment; filename=relatorio_atendimentos_{start_date.strftime('%Y%m%d')}_a_{end_date.strftime('%Y%m%d')}.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 @app.route('/admin/create_user', methods=['POST'])
 @login_required
@@ -319,10 +469,10 @@ def delete_user(user_id):
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🚀 SERVIDOR INICIADO COM SUCESSO!")
+    print(" SERVIDOR INICIADO COM SUCESSO!")
     print("="*60)
-    print("\n📍 Acesse o sistema em seu navegador:")
-    print("   👉 http://localhost:5001")
-    print("   👉 http://127.0.0.1:5001")
+    print("\n Acesse o sistema em seu navegador:")
+    print("    http://localhost:5001")
+    print("    http://127.0.0.1:5001")
     print("\n" + "="*60 + "\n")
     socketio.run(app, debug=True, host='0.0.0.0', port=5001)
