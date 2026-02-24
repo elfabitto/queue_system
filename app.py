@@ -6,7 +6,7 @@ eventlet.monkey_patch()
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, emit
-from models import db, User, Queue, Attendance, Skip
+from models import db, User, Queue, Attendance, Skip, get_brt_time
 from flask import make_response
 from datetime import datetime, timedelta
 import os
@@ -180,13 +180,13 @@ def finish_task():
         # Atualizar atendimento
         attendance = Attendance.query.filter_by(user_id=current_user.id, finished_at=None).order_by(Attendance.started_at.desc()).first()
         if attendance:
-            attendance.finished_at = datetime.utcnow()
+            attendance.finished_at = get_brt_time()
             delta = attendance.finished_at - attendance.started_at
             attendance.duration_seconds = int(delta.total_seconds())
         
         # Voltar para o fim da fila
         entry.status = 'Disponível'
-        entry.entered_at = datetime.utcnow()
+        entry.entered_at = get_brt_time()
         db.session.commit()
         
         socketio.emit('update_queue')
@@ -202,7 +202,7 @@ def skip_task():
         db.session.add(skip)
         
         # Mover para o fim da fila sem registrar atendimento
-        entry.entered_at = datetime.utcnow()
+        entry.entered_at = get_brt_time()
         db.session.commit()
         socketio.emit('update_queue')
     return redirect(url_for('index'))
@@ -212,7 +212,7 @@ def get_daily_stats():
     all_users = User.query.filter_by(is_admin=False).all()
     daily_stats = []
     
-    now = datetime.utcnow()
+    now = get_brt_time()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=today_start.weekday())
     month_start = today_start.replace(day=1)
@@ -354,7 +354,7 @@ def export_csv():
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
     
-    now = datetime.utcnow()
+    now = get_brt_time()
     try:
         if start_date_str:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
