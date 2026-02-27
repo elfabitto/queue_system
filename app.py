@@ -288,10 +288,12 @@ def admin():
     raw_history = Attendance.query.filter(Attendance.finished_at.isnot(None)).order_by(Attendance.finished_at.desc()).limit(50).all()
     history = []
     for r in raw_history:
+        inicio_str = r.started_at.strftime('%d/%m/%Y %H:%M') if r.started_at else '-'
         history.append({
             'colaborador': {'username': r.colaborador.username if hasattr(r, 'colaborador') and r.colaborador else 'Desconhecido'},
             'duration_seconds': r.duration_seconds or 0,
-            'duracao': format_duration(r.duration_seconds)
+            'duracao': format_duration(r.duration_seconds),
+            'inicio': inicio_str
         })
     
     stats = []

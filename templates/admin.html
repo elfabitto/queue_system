@@ -416,6 +416,7 @@
           <thead>
             <tr>
               <th>Colaborador</th>
+              <th>Início</th>
               <th>Duração</th>
             </tr>
           </thead>
@@ -428,6 +429,11 @@
             {% for record in history %}
             <tr>
               <td>{{ record.colaborador.username }}</td>
+              <td>
+                <span style="font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted);">
+                  {{ record.inicio }}
+                </span>
+              </td>
               <td>
                 <span style="font-family:'DM Mono',monospace; font-size:0.72rem;">
                   {{ record.duracao }}
