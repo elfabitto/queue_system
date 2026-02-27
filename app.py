@@ -482,12 +482,32 @@ def export_xlsx():
 
 # ── ROTAS DE AVATAR ──
 AVATAR_STYLES = [
-    {'id': 'fun-emoji',  'label': 'Emoji Fun'},
-    {'id': 'bottts',     'label': 'Robôs'},
-    {'id': 'pixel-art',  'label': 'Pixel Art'},
-    {'id': 'adventurer', 'label': 'Aventureiro'},
-    {'id': 'croodles',   'label': 'Doodles'},
-    {'id': 'thumbs',     'label': 'Thumbs'},
+    {'id': 'adventurer',        'label': 'Adventurer'},
+    {'id': 'adventurer-neutral','label': 'Adventurer Neutral'},
+    {'id': 'avataaars',         'label': 'Avataaars'},
+    {'id': 'avataaars-neutral', 'label': 'Avataaars Neutral'},
+    {'id': 'big-ears',          'label': 'Big Ears'},
+    {'id': 'big-ears-neutral',  'label': 'Big Ears Neutral'},
+    {'id': 'big-smile',         'label': 'Big Smile'},
+    {'id': 'bottts',            'label': 'Bottts'},
+    {'id': 'bottts-neutral',    'label': 'Bottts Neutral'},
+    {'id': 'croodles',          'label': 'Croodles'},
+    {'id': 'croodles-neutral',  'label': 'Croodles Neutral'},
+    {'id': 'dylan',             'label': 'Dylan'},
+    {'id': 'fun-emoji',         'label': 'Fun Emoji'},
+    {'id': 'initials',          'label': 'Initials'},
+    {'id': 'lorelei',           'label': 'Lorelei'},
+    {'id': 'lorelei-neutral',   'label': 'Lorelei Neutral'},
+    {'id': 'micah',             'label': 'Micah'},
+    {'id': 'miniavs',           'label': 'Miniavs'},
+    {'id': 'notionists',        'label': 'Notionists'},
+    {'id': 'notionists-neutral','label': 'Notionists Neutral'},
+    {'id': 'open-peeps',        'label': 'Open Peeps'},
+    {'id': 'personas',          'label': 'Personas'},
+    {'id': 'pixel-art',         'label': 'Pixel Art'},
+    {'id': 'pixel-art-neutral', 'label': 'Pixel Art Neutral'},
+    {'id': 'rings',             'label': 'Rings'},
+    {'id': 'toon-head',         'label': 'Toon Head'},
 ]
 
 AVATAR_SEEDS = [
