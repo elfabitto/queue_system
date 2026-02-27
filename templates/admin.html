@@ -731,7 +731,17 @@
           {% for entry in queue %}
           <tr>
             <td class="queue-pos">{{ loop.index }}</td>
-            <td style="font-weight: 500;">{{ entry.user.username if entry.user else 'Desconhecido' }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                {% if entry.user %}
+                <img
+                  src="https://api.dicebear.com/9.x/{{ entry.user.avatar_style or 'fun-emoji' }}/svg?seed={{ entry.user.avatar_seed or entry.user.username }}&backgroundColor=transparent"
+                  alt="avatar"
+                  style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--accent);flex-shrink:0;">
+                {% endif %}
+                <span style="font-weight:500;">{{ entry.user.username if entry.user else 'Desconhecido' }}</span>
+              </div>
+            </td>
             <td>
               {% if loop.first and entry.status == 'Disponível' %}
               <span class="badge badge-vez">Na vez</span>

@@ -10,6 +10,13 @@
     href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"
     rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <!-- Aplica tema salvo ANTES do render (evita flash branco) -->
+  <script>
+    (function () {
+      var t = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
   <style>
     *,
     *::before,
@@ -59,6 +66,36 @@
       --shadow-lg: 0 10px 30px rgba(124, 58, 237, 0.14), 0 4px 10px rgba(0, 0, 0, 0.06);
     }
 
+    /* ── DARK MODE ── */
+    [data-theme="dark"] {
+      --bg: #0d0b14;
+      --surface: #13111e;
+      --surface2: #1a1728;
+      --border: #2a2640;
+      --border2: #3b3658;
+      --accent: #a78bfa;
+      --accent-mid: #8b5cf6;
+      --accent-light: #2e1f6e;
+      --accent-dim: rgba(167, 139, 250, 0.12);
+      --accent-glow: rgba(167, 139, 250, 0.25);
+      --warn: #fbbf24;
+      --warn-dim: rgba(251, 191, 36, 0.12);
+      --info: #60a5fa;
+      --info-dim: rgba(96, 165, 250, 0.12);
+      --danger: #f87171;
+      --danger-dim: rgba(248, 113, 113, 0.12);
+      --success: #34d399;
+      --success-dim: rgba(52, 211, 153, 0.12);
+      --fg: #ede9fe;
+      --text: #ede9fe;
+      --text-mid: #c4b5fd;
+      --muted: #6d6490;
+      --muted2: #2a2640;
+      --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.55);
+    }
+
     html,
     body {
       min-height: 100vh;
@@ -100,6 +137,30 @@
       position: sticky;
       top: 0;
       z-index: 100;
+    }
+
+    /* Botão de tema */
+    .btn-theme {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .btn-theme:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
     }
 
     .hdr-logo {
@@ -727,6 +788,10 @@
       {% endif %}
     </div>
     <div class="hdr-right">
+      <!-- Botão dark/light mode -->
+      <button class="btn-theme" id="btn-theme" title="Alternar tema" aria-label="Alternar tema">
+        <span id="theme-icon">🌙</span>
+      </button>
       <!-- Avatar dropdown -->
       <div class="hdr-avatar-wrap" id="hdr-avatar-wrap">
         <button type="button" class="hdr-avatar-btn" id="hdr-avatar-btn" aria-haspopup="true" aria-expanded="false">
@@ -801,6 +866,29 @@
       document.addEventListener('click', () => {
         avatarWrap.classList.remove('open');
         avatarBtn.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    // ── Toggle dark / light mode ──
+    const btnTheme = document.getElementById('btn-theme');
+    const themeIcon = document.getElementById('theme-icon');
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      if (themeIcon) themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // Sincroniza ícone com o tema já aplicado (pelo script inline do <head>)
+    (function () {
+      var cur = document.documentElement.getAttribute('data-theme') || 'light';
+      if (themeIcon) themeIcon.textContent = cur === 'dark' ? '☀️' : '🌙';
+    })();
+
+    if (btnTheme) {
+      btnTheme.addEventListener('click', () => {
+        var cur = document.documentElement.getAttribute('data-theme') || 'light';
+        applyTheme(cur === 'dark' ? 'light' : 'dark');
       });
     }
   </script>
