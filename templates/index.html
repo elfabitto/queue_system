@@ -1,11 +1,37 @@
 {% extends "base.html" %}
 
+{% block extra_styles %}
+<style>
+  /* ── Inputs globais (usados em forms do index) ── */
+  input {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.86rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 0.75rem;
+  }
+
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  input::placeholder {
+    color: var(--muted);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="app-main">
 
-  <!-- ========================================
-       CASO 1: USUÁRIO NÃO ESTÁ NA FILA
-       ======================================== -->
+  <!-- CASO 1: USUÁRIO NÃO ESTÁ NA FILA -->
   {% if not user_entry %}
   <div class="fora-card">
     <p>Você não está na fila no momento.</p>
@@ -15,15 +41,12 @@
   </div>
   {% endif %}
 
-  <!-- ========================================
-       CASO 2: USUÁRIO ESTÁ NA FILA (AGUARDANDO)
-       ======================================== -->
+  <!-- CASO 2: AGUARDANDO -->
   {% if user_entry and user_entry.status == 'Disponível' %}
 
-  <!-- Verificar se é a vez do usuário -->
   {% if turn_user and turn_user.user_id == current_user.id %}
 
-  <!-- CARD: É A SUA VEZ! -->
+  <!-- É A SUA VEZ -->
   <div class="vez-card">
     <div class="card-chip chip-green">▶ É A SUA VEZ</div>
     <div class="card-name">{{ current_user.username }}</div>
@@ -37,7 +60,6 @@
     </div>
   </div>
 
-  <!-- Popup de notificação -->
   <div class="popup show" id="popup-turn">
     <button class="popup-close" onclick="this.parentElement.classList.remove('show')">×</button>
     <div class="popup-title">▶ SUA VEZ</div>
@@ -46,7 +68,7 @@
 
   {% else %}
 
-  <!-- CARD: AGUARDANDO SUA VEZ -->
+  <!-- AGUARDANDO -->
   {% set posicao = namespace(value=0) %}
   {% for entry in queue %}
   {% if entry.user_id == current_user.id %}
@@ -56,7 +78,7 @@
 
   <div class="aguard-card">
     <div>
-      <div class="sec-title" style="margin-bottom:0.2rem">Posição na fila</div>
+      <div class="sec-title" style="margin-bottom:0.18rem">Posição na fila</div>
       <div style="font-size:0.72rem; color:var(--muted)">Aguardando sua vez</div>
     </div>
     <div>
@@ -73,9 +95,7 @@
   {% endif %}
   {% endif %}
 
-  <!-- ========================================
-       CASO 3: USUÁRIO ESTÁ ANALISANDO
-       ======================================== -->
+  <!-- CASO 3: ANALISANDO -->
   {% if user_entry and user_entry.status == 'Analisando' %}
   <div class="analis-card">
     <div>
@@ -88,9 +108,7 @@
   </div>
   {% endif %}
 
-  <!-- ========================================
-       LISTA DA FILA
-       ======================================== -->
+  <!-- FILA ATUAL -->
   <div class="sec-title">Fila atual</div>
   <div class="fila-list">
     {% if not queue %}
@@ -99,7 +117,7 @@
     </div>
     {% else %}
     {% for entry in queue %}
-    <div class="fila-item 
+    <div class="fila-item
         {% if loop.first and entry.status == 'Disponível' %}vez{% endif %}
         {% if entry.status == 'Analisando' %}analisando{% endif %}
         {% if entry.user_id == current_user.id %}eu{% endif %}">
@@ -111,7 +129,7 @@
           {{ entry.user.username }}
           {% if entry.user_id == current_user.id %}(Você){% endif %}
         </div>
-        <div class="fila-status 
+        <div class="fila-status
             {% if entry.status == 'Disponível' and loop.first %}green{% endif %}
             {% if entry.status == 'Analisando' %}yellow{% endif %}">
           {% if loop.first and entry.status == 'Disponível' %}Na vez{% else %}{{ entry.status }}{% endif %}
@@ -136,53 +154,39 @@
 
 {% block scripts %}
 <script>
-  // Registro do Service Worker para Notificações no Windows e Android
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/static/sw.js')
-      .then(function (registration) {
-        console.log('Service Worker registrado com sucesso:', registration.scope);
-      })
-      .catch(function (error) {
-        console.log('Falha ao registrar o Service Worker:', error);
-      });
+      .then(r => console.log('SW registrado:', r.scope))
+      .catch(e => console.log('SW falhou:', e));
   }
 
-  // Verificar se é a vez do usuário (variável definida pelo Flask)
   var isMyTurn = {{ 'true' if turn_user and turn_user.user_id == current_user.id else 'false' }};
 
   if (isMyTurn) {
-    // Evita que notifique várias vezes se a página for recarregada enquanto ainda é a vez dele
     if (!localStorage.getItem('notified_turn')) {
-      // Tocar som de notificação
       var audio = document.getElementById('notificationSound');
-      if (audio) {
-        audio.play().catch(function (e) { console.log("Som bloqueado até a primeira interação na tela."); });
-      }
+      if (audio) audio.play().catch(() => { });
 
-      // Notificação nativa e direta no Windows
       if (Notification.permission === "granted") {
-        var notif = new Notification("Sua Vez!", {
+        var n = new Notification("Sua Vez!", {
           body: "É a sua vez na fila. Inicie sua tarefa.",
           icon: "https://cdn-icons-png.flaticon.com/512/1827/1827347.png"
         });
-        notif.onclick = function () { window.focus(); };
+        n.onclick = () => window.focus();
       } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(function (permission) {
-          if (permission === "granted") {
-            var notif = new Notification("Sua Vez!", {
+        Notification.requestPermission().then(p => {
+          if (p === "granted") {
+            var n = new Notification("Sua Vez!", {
               body: "É a sua vez na fila. Inicie sua tarefa.",
               icon: "https://cdn-icons-png.flaticon.com/512/1827/1827347.png"
             });
-            notif.onclick = function () { window.focus(); };
+            n.onclick = () => window.focus();
           }
         });
       }
-
-      // Marca que já foi avisado nesta rodada
       localStorage.setItem('notified_turn', 'true');
     }
   } else {
-    // Se não é a vez dele, remover a trava para a próxima
     localStorage.removeItem('notified_turn');
   }
 </script>

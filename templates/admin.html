@@ -2,326 +2,661 @@
 
 {% block extra_styles %}
 <style>
-  /* Forçar a exibição do ícone do calendário para inputs type="date" em temas escuros */
+  /* ── Calendário visível no tema claro ── */
   input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
     cursor: pointer;
-    font-size: 1.2rem;
+    opacity: 0.45;
+    transition: opacity 0.15s;
   }
 
-  /* Admin Panel Specific Styles */
-  .admin-main {
-    max-width: 860px;
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 0.85;
+  }
+
+  /* ─────────── LAYOUT ─────────── */
+  .admin-wrap {
+    max-width: 980px;
     margin: 0 auto;
-    padding: 1.5rem 1rem;
+    padding: 2rem 1.25rem 3rem;
   }
 
+  /* ─────────── PAGE HEADER ─────────── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .page-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .page-title span {
+    color: var(--accent);
+  }
+
+  /* ─────────── EXPORT FORM ─────────── */
+  .export-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+  }
+
+  .export-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .export-date {
+    padding: 0.26rem 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.18s;
+  }
+
+  .export-date:focus {
+    border-color: var(--accent);
+  }
+
+  .export-sep {
+    color: var(--muted);
+    font-size: 0.65rem;
+  }
+
+  .btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.32rem 0.85rem;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.07em;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+
+  .btn-export:hover {
+    background: var(--accent-mid);
+    box-shadow: 0 4px 14px var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  /* ─────────── SECTION TITLE ─────────── */
+  .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ─────────── STATS CARDS ─────────── */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
     gap: 0.7rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
   }
 
   .stat-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    padding: 0.95rem 1.1rem;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.18s, transform 0.18s;
   }
 
-  .stat-label {
-    font-size: 0.68rem;
-    color: var(--muted);
-    margin-bottom: 0.25rem;
+  .stat-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 
-  .stat-value {
+  .stat-card-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    margin-bottom: 0.6rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stat-card-nums {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .stat-num-block {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-num-label {
     font-family: 'DM Mono', monospace;
-    font-size: 1.75rem;
-    font-weight: 300;
+    font-size: 0.56rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.12rem;
   }
 
-  .stat-value.green {
+  .stat-num-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.55rem;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .stat-num-val.purple {
     color: var(--accent);
   }
 
-  .stat-value.blue {
-    color: var(--info);
+  .stat-num-val.orange {
+    color: var(--warn);
   }
 
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.9rem;
-    margin-bottom: 1.5rem;
+  /* ─────────── CARD PANEL ─────────── */
+  .card-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+    overflow: hidden;
   }
 
-  /* Table */
+  .panel-head {
+    padding: 0.75rem 1.1rem 0.6rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ─────────── TABELAS ─────────── */
   .admin-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 0.5rem;
   }
 
   .admin-table th {
     font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
+    font-size: 0.57rem;
+    letter-spacing: 0.1em;
     color: var(--muted);
-    padding: 0.35rem 0.45rem;
+    padding: 0.45rem 0.65rem;
     border-bottom: 1px solid var(--border);
     text-align: left;
+    text-transform: uppercase;
+    background: var(--surface2);
   }
 
   .admin-table td {
-    padding: 0.5rem 0.45rem;
+    padding: 0.55rem 0.65rem;
     font-size: 0.8rem;
     border-bottom: 1px solid var(--border);
+    vertical-align: middle;
   }
 
-  .admin-table tr:last-child td {
+  .admin-table tbody tr:last-child td {
     border-bottom: none;
   }
 
-  .status-badge {
+  .admin-table tbody tr {
+    transition: background 0.14s;
+  }
+
+  .admin-table tbody tr:hover {
+    background: var(--surface2);
+  }
+
+  /* stat inline (daily) */
+  .stat-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.08rem;
+  }
+
+  .stat-inline-main {
     font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.04em;
-    padding: 0.12rem 0.4rem;
-    border-radius: 4px;
-  }
-
-  .status-badge.aguardando {
-    background: var(--muted2);
-    color: var(--muted);
-  }
-
-  .status-badge.vez {
-    background: var(--accent-dim);
+    font-size: 0.85rem;
+    font-weight: 500;
     color: var(--accent);
   }
 
-  .status-badge.analisando {
-    background: var(--warn-dim);
+  .stat-inline-skip {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
     color: var(--warn);
   }
 
-  /* Colab row */
-  .colab-row {
-    display: flex;
+  /* ─────────── BADGES ─────────── */
+  .badge {
+    display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.57rem;
+    letter-spacing: 0.05em;
+    padding: 0.16rem 0.52rem;
+    border-radius: 99px;
+    font-weight: 500;
+    white-space: nowrap;
   }
 
-  .colab-row:last-child {
+  .badge-vez {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(124, 58, 237, 0.22);
+  }
+
+  .badge-analis {
+    background: var(--warn-dim);
+    color: var(--warn);
+    border: 1px solid rgba(217, 119, 6, 0.22);
+  }
+
+  .badge-aguard {
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* ─────────── 2 COLUNAS ─────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 640px) {
+    .two-col {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ─────────── HISTÓRICO ─────────── */
+  .history-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .hist-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .hist-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0.42rem 0.65rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    background: var(--surface2);
+    position: sticky;
+    top: 0;
+  }
+
+  .hist-table td {
+    padding: 0.5rem 0.65rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .hist-table tbody tr:last-child td {
     border-bottom: none;
   }
 
-  .colab-nome {
-    flex: 1;
-    font-size: 0.82rem;
+  .hist-table tbody tr {
+    transition: background 0.12s;
   }
 
-  .colab-total {
+  .hist-table tbody tr:hover {
+    background: var(--surface2);
+  }
+
+  .hist-name {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text);
+  }
+
+  .hist-inicio {
     font-family: 'DM Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--accent);
-  }
-
-  .colab-media {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     color: var(--muted);
-    width: 65px;
-    text-align: right;
+    white-space: nowrap;
   }
 
-  /* Form */
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
-    margin-top: 0.75rem;
-  }
-
-  .form-group label {
-    font-size: 0.65rem;
-    letter-spacing: 0.07em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 0.28rem;
-  }
-
-  .form-group input {
-    margin-bottom: 0;
-  }
-
-  .form-foot {
-    display: flex;
-    align-items: center;
-    margin-top: 0.7rem;
-  }
-
-  .form-foot label {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-    cursor: pointer;
-    text-transform: none;
-    letter-spacing: 0;
-  }
-
-  .btn-criar {
-    margin-left: auto;
-    padding: 0.5rem 1.1rem;
-    background: var(--accent);
-    color: #0d0d0f;
+  .hist-duracao {
     font-family: 'DM Mono', monospace;
     font-size: 0.72rem;
-    letter-spacing: 0.05em;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.18s;
+    font-weight: 500;
+    color: var(--accent);
+    white-space: nowrap;
   }
 
-  .btn-criar:hover {
-    opacity: 0.88;
+  /* ─────────── USUÁRIOS ─────────── */
+  .users-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .users-head {
+    padding: 0.75rem 1.1rem 0.6rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.57rem;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
   }
 
   .user-row {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
+    gap: 0.7rem;
+    padding: 0.7rem 1.1rem;
     border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
   }
 
-  .user-row:last-child {
+  .user-row:last-of-type {
     border-bottom: none;
   }
 
-  .u-nome {
+  .user-row:hover {
+    background: var(--surface2);
+  }
+
+  .u-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    border: 1.5px solid rgba(124, 58, 237, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 0.7rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .u-info {
     flex: 1;
+    min-width: 0;
+  }
+
+  .u-nome {
     font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
   }
 
   .u-email {
-    font-size: 0.68rem;
+    font-size: 0.67rem;
     color: var(--muted);
+    margin-top: 0.04rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .u-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .btn-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    padding: 0.22rem 0.58rem;
+    background: var(--accent-dim);
+    border: 1px solid rgba(124, 58, 237, 0.22);
+    color: var(--accent);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-detail:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
   }
 
   .btn-rem {
     font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    padding: 0.22rem 0.5rem;
+    font-size: 0.58rem;
+    padding: 0.22rem 0.58rem;
     background: transparent;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border2);
     color: var(--muted);
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
-    transition: all 0.18s;
+    transition: all 0.15s;
   }
 
   .btn-rem:hover {
     border-color: var(--danger);
     color: var(--danger);
+    background: var(--danger-dim);
   }
 
-  .mb {
-    margin-bottom: 1.5rem;
+  /* ─────────── CRIAR USUÁRIO ─────────── */
+  .create-section {
+    padding: 1rem 1.1rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
   }
 
-  .header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .header-title h2 {
-    font-size: 1.25rem;
-    font-weight: 500;
-  }
-
-  .btn-link {
+  .create-title {
     font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.05em;
-    padding: 0.4rem 0.75rem;
-    background: transparent;
-    border: 1px solid var(--border);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.55rem;
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .form-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.07em;
     color: var(--muted);
-    border-radius: 5px;
+    text-transform: uppercase;
+  }
+
+  .form-input {
+    padding: 0.48rem 0.65rem;
+    font-size: 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.18s, box-shadow 0.18s;
+    margin: 0;
+    width: 100%;
+  }
+
+  .form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .form-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.7rem;
+  }
+
+  .check-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-mid);
+    cursor: pointer;
+  }
+
+  .check-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--accent);
+    margin: 0;
+  }
+
+  .btn-criar {
+    padding: 0.48rem 1.1rem;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.07em;
+    border: none;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.18s;
-    text-decoration: none;
-    display: inline-block;
+    box-shadow: 0 2px 8px var(--accent-glow);
   }
 
-  .btn-link:hover {
-    border-color: var(--info);
-    color: var(--info);
+  .btn-criar:hover {
+    background: var(--accent-mid);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px var(--accent-glow);
+  }
+
+  /* empty state */
+  .empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-style: italic;
+  }
+
+  /* queue pos col */
+  .queue-pos {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    width: 20px;
+    text-align: center;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="admin-main">
+<div class="admin-wrap">
 
-  <!-- Header -->
-  <div class="header-row">
-    <div class="header-title">
-      <h2>Painel do Administrador</h2>
-    </div>
-
-    <!-- CSV Export Form -->
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <form action="{{ url_for('export_xlsx') }}" method="GET"
-        style="display: flex; gap: 0.5rem; align-items: center; margin: 0;">
-        <label style="font-size: 0.7rem; color: var(--muted);">Início:</label>
-        <input type="date" name="start_date"
-          style="padding: 0.3rem; font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--fg);"
-          required>
-
-        <label style="font-size: 0.7rem; color: var(--muted); margin-left: 0.5rem;">Fim:</label>
-        <input type="date" name="end_date"
-          style="padding: 0.3rem; font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--fg);"
-          required>
-
-        <button type="submit" class="btn-link" style="margin-left: 0.5rem;">📊 EXPORTAR XLSX</button>
-      </form>
-    </div>
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1 class="page-title">Painel <span>Admin</span></h1>
+    <form action="{{ url_for('export_xlsx') }}" method="GET" class="export-form">
+      <span class="export-label">Exportar de:</span>
+      <input type="date" name="start_date" class="export-date" id="start_date" required>
+      <span class="export-sep">→</span>
+      <input type="date" name="end_date" class="export-date" id="end_date" required>
+      <button type="submit" class="btn-export">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1v9m0 0L5 7m3 3 3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        XLSX
+      </button>
+    </form>
   </div>
 
-  <!-- Stats -->
+  <!-- ATENDIMENTOS POR COLABORADOR -->
   {% if stats %}
-  <div class="sec-title">Atendimentos por colaborador</div>
-  <div class="stats-grid mb">
+  <p class="section-title">Atendimentos por colaborador</p>
+  <div class="stats-grid">
     {% for stat in stats %}
     <div class="stat-card">
-      <div class="stat-label">{{ stat.username }}</div>
-      <div style="display: flex; gap: 1rem;">
-        <div>
-          <span style="font-size: 0.65rem; color: var(--muted);">Concluídos:</span>
-          <div class="stat-value green">{{ stat.count }}</div>
+      <div class="stat-card-name">{{ stat.username }}</div>
+      <div class="stat-card-nums">
+        <div class="stat-num-block">
+          <span class="stat-num-label">Concluídos</span>
+          <span class="stat-num-val purple">{{ stat.count }}</span>
         </div>
-        <div>
-          <span style="font-size: 0.65rem; color: var(--muted);">Pulados:</span>
-          <div class="stat-value" style="color: var(--warn);">{{ stat.skip_count }}</div>
+        <div class="stat-num-block">
+          <span class="stat-num-label">Pulados</span>
+          <span class="stat-num-val orange">{{ stat.skip_count }}</span>
         </div>
       </div>
     </div>
@@ -329,37 +664,40 @@
   </div>
   {% endif %}
 
-  <!-- Daily Statistics -->
+  <!-- ESTATÍSTICAS DIÁRIAS -->
   {% if daily_stats %}
-  <div class="sec-title">Atendimentos diários por colaborador</div>
-  <div class="card mb">
+  <p class="section-title">Estatísticas por período</p>
+  <div class="card-panel">
     <table class="admin-table">
       <thead>
         <tr>
           <th>Colaborador</th>
           <th>Hoje</th>
-          <th>Esta semana</th>
-          <th>Este mês</th>
+          <th>Semana</th>
+          <th>Mês</th>
         </tr>
       </thead>
       <tbody>
         {% for stat in daily_stats %}
         <tr>
-          <td>{{ stat.username }}</td>
+          <td style="font-weight: 600;">{{ stat.username }}</td>
           <td>
-            <div>Con: <span class="stat-value blue">{{ stat.today }}</span></div>
-            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Pul: <span
-                style="color: var(--warn);">{{ stat.today_skips }}</span></div>
+            <div class="stat-inline">
+              <span class="stat-inline-main">{{ stat.today }}</span>
+              <span class="stat-inline-skip">↩ {{ stat.today_skips }}</span>
+            </div>
           </td>
           <td>
-            <div>Con: <span class="stat-value green">{{ stat.this_week }}</span></div>
-            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Pul: <span
-                style="color: var(--warn);">{{ stat.week_skips }}</span></div>
+            <div class="stat-inline">
+              <span class="stat-inline-main">{{ stat.this_week }}</span>
+              <span class="stat-inline-skip">↩ {{ stat.week_skips }}</span>
+            </div>
           </td>
           <td>
-            <div>Con: <span class="stat-value">{{ stat.this_month }}</span></div>
-            <div style="font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem;">Pul: <span
-                style="color: var(--warn);">{{ stat.month_skips }}</span></div>
+            <div class="stat-inline">
+              <span class="stat-inline-main">{{ stat.this_month }}</span>
+              <span class="stat-inline-skip">↩ {{ stat.month_skips }}</span>
+            </div>
           </td>
         </tr>
         {% endfor %}
@@ -368,12 +706,14 @@
   </div>
   {% endif %}
 
-  <!-- Two Columns: Fila + Histórico -->
-  <div class="two-col mb">
+  <!-- FILA + HISTÓRICO -->
+  <div class="two-col">
 
     <!-- Fila Atual -->
-    <div class="card">
-      <div class="sec-title">Fila atual</div>
+    <div class="card-panel" style="margin-bottom: 0;">
+      <div class="panel-head">
+        <p class="section-title" style="margin-bottom: 0;">Fila atual</p>
+      </div>
       <table class="admin-table">
         <thead>
           <tr>
@@ -385,20 +725,20 @@
         <tbody>
           {% if not queue %}
           <tr>
-            <td colspan="3" style="text-align:center; color:var(--muted); padding: 1rem;">Ninguém na fila</td>
+            <td colspan="3" class="empty-state">Ninguém na fila</td>
           </tr>
           {% else %}
           {% for entry in queue %}
           <tr>
-            <td style="color:var(--muted);font-family:'DM Mono',monospace">{{ loop.index }}</td>
-            <td>{{ entry.user.username if entry.user else 'Desconhecido' }}</td>
+            <td class="queue-pos">{{ loop.index }}</td>
+            <td style="font-weight: 500;">{{ entry.user.username if entry.user else 'Desconhecido' }}</td>
             <td>
               {% if loop.first and entry.status == 'Disponível' %}
-              <span class="status-badge vez">Na vez</span>
+              <span class="badge badge-vez">Na vez</span>
               {% elif entry.status == 'Analisando' %}
-              <span class="status-badge analisando">Analisando</span>
+              <span class="badge badge-analis">Analisando</span>
               {% else %}
-              <span class="status-badge aguardando">Disponível</span>
+              <span class="badge badge-aguard">Aguardando</span>
               {% endif %}
             </td>
           </tr>
@@ -408,11 +748,13 @@
       </table>
     </div>
 
-    <!-- Histórico Recente -->
-    <div class="card">
-      <div class="sec-title">Últimos atendimentos</div>
-      <div style="max-height: 380px; overflow-y: auto; padding-right: 5px;">
-        <table class="admin-table">
+    <!-- Histórico -->
+    <div class="card-panel" style="margin-bottom: 0; padding: 0; display: flex; flex-direction: column;">
+      <div class="panel-head">
+        <p class="section-title" style="margin-bottom: 0;">Últimos atendimentos</p>
+      </div>
+      <div class="history-scroll" style="flex: 1;">
+        <table class="hist-table">
           <thead>
             <tr>
               <th>Colaborador</th>
@@ -423,22 +765,14 @@
           <tbody>
             {% if not history %}
             <tr>
-              <td colspan="2" style="text-align:center; color:var(--muted); padding: 1rem;">Nenhum atendimento</td>
+              <td colspan="3" class="empty-state">Nenhum atendimento</td>
             </tr>
             {% else %}
             {% for record in history %}
             <tr>
-              <td>{{ record.colaborador.username }}</td>
-              <td>
-                <span style="font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted);">
-                  {{ record.inicio }}
-                </span>
-              </td>
-              <td>
-                <span style="font-family:'DM Mono',monospace; font-size:0.72rem;">
-                  {{ record.duracao }}
-                </span>
-              </td>
+              <td class="hist-name">{{ record.colaborador.username }}</td>
+              <td class="hist-inicio">{{ record.inicio }}</td>
+              <td class="hist-duracao">{{ record.duracao }}</td>
             </tr>
             {% endfor %}
             {% endif %}
@@ -446,67 +780,70 @@
         </table>
       </div>
     </div>
+
   </div>
 
-  <!-- Gerenciar Usuários -->
-  <div class="sec-title">Gerenciar colaboradores</div>
-  <div class="card">
-    <!-- Lista de Usuários -->
+  <!-- COLABORADORES -->
+  <p class="section-title">Colaboradores</p>
+  <div class="users-panel">
+    <div class="users-head">Lista de usuários</div>
+
     {% for user in all_users %}
     <div class="user-row">
-      <div>
+      <div class="u-avatar">{{ user.username[0] | upper }}</div>
+      <div class="u-info">
         <div class="u-nome">
           {{ user.username }}
           {% if user.is_admin %}
-          <span class="admin-badge" style="margin-left: 0.5rem;">ADMIN</span>
+          <span class="admin-badge" style="margin-left: 0.4rem; vertical-align: middle;">ADMIN</span>
           {% endif %}
         </div>
-        <div class="u-email">{{ user.email }}</div>
+        <div class="u-email">{{ user.email or '—' }}</div>
       </div>
-      <div style="display: flex; gap: 0.5rem;">
+      <div class="u-actions">
         {% if not user.is_admin %}
-        <a href="{{ url_for('view_colaborador', user_id=user.id) }}" class="btn-link"
-          style="padding: 0.22rem 0.5rem;">DETALHES</a>
+        <a href="{{ url_for('view_colaborador', user_id=user.id) }}" class="btn-detail">DETALHES</a>
         {% endif %}
         {% if user.id != current_user.id %}
         <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST"
-          onsubmit="return confirm('Tem certeza que deseja remover este usuário?')" style="margin:0;">
+          onsubmit="return confirm('Remover {{ user.username }}?')" style="margin:0;">
           <button type="submit" class="btn-rem">REMOVER</button>
         </form>
         {% else %}
-        <span style="font-size: 0.65rem; color: var(--muted); font-style: italic; align-self: center;">Você</span>
+        <span style="font-size: 0.62rem; color: var(--muted); font-style: italic; align-self: center;">você</span>
         {% endif %}
       </div>
     </div>
     {% endfor %}
 
-    <!-- Formulário de Criação -->
-    <div style="border-top: 1px solid var(--border); margin-top: 0.75rem; padding-top: 0.9rem;">
-      <div class="sec-title">Adicionar colaborador</div>
+    <!-- Criar usuário -->
+    <div class="create-section">
+      <div class="create-title">Adicionar colaborador</div>
       <form action="{{ url_for('create_user') }}" method="POST">
-        <div class="form-row">
+        <div class="form-grid">
           <div class="form-group">
-            <label>Nome</label>
-            <input type="text" name="username" placeholder="Nome completo" required>
+            <label class="form-label" for="f-nome">Nome</label>
+            <input class="form-input" type="text" id="f-nome" name="username" placeholder="Nome completo" required>
           </div>
           <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" placeholder="email@empresa.com" required>
+            <label class="form-label" for="f-email">Email</label>
+            <input class="form-input" type="email" id="f-email" name="email" placeholder="email@empresa.com">
           </div>
           <div class="form-group">
-            <label>Senha</label>
-            <input type="password" name="password" placeholder="Senha inicial" required>
+            <label class="form-label" for="f-senha">Senha</label>
+            <input class="form-input" type="password" id="f-senha" name="password" placeholder="Senha inicial" required>
           </div>
         </div>
         <div class="form-foot">
-          <label style="display: flex; align-items: center; gap: 0.35rem;">
-            <input type="checkbox" name="is_admin" id="is_admin" style="width: auto;">
-            <span>Admin</span>
+          <label class="check-label">
+            <input type="checkbox" name="is_admin" id="is_admin">
+            <span>Perfil Admin</span>
           </label>
           <button type="submit" class="btn-criar">CRIAR USUÁRIO</button>
         </div>
       </form>
     </div>
+
   </div>
 
 </div>

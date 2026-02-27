@@ -20,23 +20,43 @@
     }
 
     :root {
-      --bg: #0d0d0f;
-      --surface: #141416;
-      --surface2: #18181c;
-      --border: #1e1e22;
-      --border2: #27272e;
-      --accent: #4ade80;
-      --accent-dim: #4ade8018;
-      --accent-glow: #4ade8040;
-      --warn: #facc15;
-      --warn-dim: #facc1518;
-      --info: #60a5fa;
-      --info-dim: #60a5fa18;
-      --danger: #f87171;
-      --danger-dim: #f8717118;
-      --text: #e8e8ea;
-      --muted: #5a5a64;
-      --muted2: #2e2e36;
+      /* ── Fundo e superfícies ── */
+      --bg: #f7f5ff;
+      --surface: #ffffff;
+      --surface2: #f0ecff;
+
+      /* ── Bordas ── */
+      --border: #e5e0f5;
+      --border2: #d0c8f0;
+
+      /* ── Roxo principal ── */
+      --accent: #7c3aed;
+      --accent-mid: #8b5cf6;
+      --accent-light: #ede9fe;
+      --accent-dim: rgba(124, 58, 237, 0.10);
+      --accent-glow: rgba(124, 58, 237, 0.22);
+
+      /* ── Funcionais ── */
+      --warn: #d97706;
+      --warn-dim: rgba(217, 119, 6, 0.10);
+      --info: #2563eb;
+      --info-dim: rgba(37, 99, 235, 0.10);
+      --danger: #dc2626;
+      --danger-dim: rgba(220, 38, 38, 0.10);
+      --success: #059669;
+      --success-dim: rgba(5, 150, 105, 0.10);
+
+      /* ── Texto ── */
+      --fg: #1e1535;
+      --text: #1e1535;
+      --text-mid: #4b4272;
+      --muted: #9589b8;
+      --muted2: #e0dbf5;
+
+      /* ── Sombras ── */
+      --shadow-sm: 0 1px 4px rgba(124, 58, 237, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 16px rgba(124, 58, 237, 0.10), 0 2px 6px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 30px rgba(124, 58, 237, 0.14), 0 4px 10px rgba(0, 0, 0, 0.06);
     }
 
     html,
@@ -46,37 +66,62 @@
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
       font-size: 14px;
+      line-height: 1.55;
     }
 
-    /* ── HEADER ── */
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 99px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-mid);
+    }
+
+    /* ───────────── HEADER ───────────── */
     .app-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.7rem 1.25rem;
-      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 52px;
       background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     .hdr-logo {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.55rem;
     }
 
     .hdr-dot {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--accent);
-      box-shadow: 0 0 8px #4ade8077;
+      box-shadow: 0 0 10px var(--accent-glow);
     }
 
     .hdr-title {
       font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      font-weight: 500;
     }
 
     .hdr-right {
@@ -86,19 +131,20 @@
     }
 
     .hdr-user {
-      font-size: 0.78rem;
-      color: var(--muted);
+      font-size: 0.8rem;
+      color: var(--text-mid);
+      font-weight: 500;
     }
 
     .btn-ghost {
       font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.05em;
-      padding: 0.3rem 0.65rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      padding: 0.3rem 0.7rem;
       background: transparent;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border2);
       color: var(--muted);
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
       transition: all 0.18s;
       text-decoration: none;
@@ -108,27 +154,30 @@
     .btn-ghost:hover {
       border-color: var(--danger);
       color: var(--danger);
+      background: var(--danger-dim);
     }
 
     .admin-badge {
       font-family: 'DM Mono', monospace;
-      font-size: 0.6rem;
+      font-size: 0.58rem;
       letter-spacing: 0.08em;
-      padding: 0.18rem 0.45rem;
-      background: var(--info-dim);
-      color: var(--info);
+      padding: 0.14rem 0.48rem;
+      background: var(--accent-dim);
+      color: var(--accent);
       border-radius: 4px;
+      border: 1px solid rgba(124, 58, 237, 0.22);
     }
 
+    /* ───────────── MAIN WRAPPER ───────────── */
     .app-main {
       max-width: 560px;
       margin: 0 auto;
-      padding: 1.5rem 1rem;
+      padding: 2rem 1rem;
     }
 
-    /* ── FLASH MESSAGES ── */
+    /* ───────────── FLASH ───────────── */
     .flash-messages {
-      max-width: 560px;
+      max-width: 920px;
       margin: 1rem auto 0;
       padding: 0 1rem;
     }
@@ -136,7 +185,7 @@
     .flash-msg {
       padding: 0.75rem 1rem;
       background: var(--danger-dim);
-      border: 1px solid #f8717140;
+      border: 1px solid rgba(220, 38, 38, 0.22);
       border-left: 3px solid var(--danger);
       border-radius: 8px;
       margin-bottom: 0.75rem;
@@ -145,15 +194,15 @@
     }
 
     .flash-msg.success {
-      background: var(--accent-dim);
-      border-color: #4ade8040;
-      border-left-color: var(--accent);
-      color: var(--accent);
+      background: var(--success-dim);
+      border-color: rgba(5, 150, 105, 0.22);
+      border-left-color: var(--success);
+      color: var(--success);
     }
 
     @keyframes slide-in {
       from {
-        transform: translateY(-10px);
+        transform: translateY(-8px);
         opacity: 0;
       }
 
@@ -163,25 +212,27 @@
       }
     }
 
-    /* ── BUTTONS ── */
+    /* ───────────── BOTÕES ───────────── */
     .btn-primary {
       width: 100%;
       padding: 0.7rem;
       background: var(--accent);
-      color: #0d0d0f;
+      color: #fff;
       font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 500;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       border: none;
-      border-radius: 7px;
+      border-radius: 8px;
       cursor: pointer;
       transition: all 0.18s;
+      box-shadow: 0 2px 10px var(--accent-glow);
     }
 
     .btn-primary:hover {
-      opacity: 0.88;
-      box-shadow: 0 0 18px var(--accent-glow);
+      background: var(--accent-mid);
+      box-shadow: 0 4px 18px var(--accent-glow);
+      transform: translateY(-1px);
     }
 
     .btn-primary:active {
@@ -191,10 +242,10 @@
     .btn-green {
       flex: 1;
       padding: 0.6rem;
-      background: var(--accent);
-      color: #0d0d0f;
+      background: var(--success);
+      color: #fff;
       font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       letter-spacing: 0.06em;
       border: none;
       border-radius: 7px;
@@ -204,17 +255,16 @@
 
     .btn-green:hover {
       opacity: 0.88;
-      box-shadow: 0 0 14px var(--accent-glow);
     }
 
     .btn-skip {
       flex: 1;
       padding: 0.6rem;
       background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
+      border: 1px solid var(--border2);
+      color: var(--text-mid);
       font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       letter-spacing: 0.06em;
       border-radius: 7px;
       cursor: pointer;
@@ -224,19 +274,20 @@
     .btn-skip:hover {
       border-color: var(--warn);
       color: var(--warn);
+      background: var(--warn-dim);
     }
 
     .btn-yellow {
       padding: 0.6rem 1.2rem;
       background: var(--warn);
-      color: #0d0d0f;
+      color: #fff;
       font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       letter-spacing: 0.06em;
       border: none;
       border-radius: 7px;
       cursor: pointer;
-      transition: all 0.18s;
+      transition: opacity 0.18s;
     }
 
     .btn-yellow:hover {
@@ -248,56 +299,56 @@
       background: var(--danger);
       color: #fff;
       font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
+      font-size: 0.7rem;
       border: none;
       border-radius: 7px;
       cursor: pointer;
-      transition: all 0.18s;
+      transition: opacity 0.18s;
     }
 
     .btn-danger:hover {
       opacity: 0.88;
     }
 
-    /* ── CARDS ── */
+    /* ───────────── CARDS ───────────── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem 1.1rem;
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+      box-shadow: var(--shadow-sm);
     }
 
     .vez-card {
-      background: var(--accent-dim);
-      border: 1px solid #4ade8030;
-      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-dim), rgba(196, 181, 253, 0.12));
+      border: 1px solid rgba(196, 181, 253, 0.45);
+      border-radius: 12px;
       padding: 1.25rem 1.5rem;
       margin-bottom: 1.5rem;
-      animation: glow-pulse 2.5s ease-in-out infinite;
+      animation: glow-pulse 2.8s ease-in-out infinite;
     }
 
     @keyframes glow-pulse {
 
       0%,
       100% {
-        box-shadow: 0 0 0 0 #4ade8010;
+        box-shadow: 0 0 0 0 var(--accent-dim);
       }
 
       50% {
-        box-shadow: 0 0 0 8px #4ade8006;
+        box-shadow: 0 0 12px var(--accent-glow);
       }
     }
 
     .card-chip {
       font-family: 'DM Mono', monospace;
-      font-size: 0.62rem;
-      letter-spacing: 0.12em;
-      margin-bottom: 0.35rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      margin-bottom: 0.4rem;
     }
 
     .chip-green {
-      color: var(--accent);
+      color: var(--success);
     }
 
     .chip-yellow {
@@ -310,11 +361,12 @@
 
     .card-name {
       font-size: 1.05rem;
-      font-weight: 500;
+      font-weight: 600;
+      color: var(--text);
     }
 
     .card-sub {
-      font-size: 0.76rem;
+      font-size: 0.75rem;
       color: var(--muted);
       margin-top: 0.15rem;
     }
@@ -331,20 +383,22 @@
       justify-content: space-between;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 1.1rem 1.5rem;
       margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
     }
 
     .pos-num {
       font-family: 'DM Mono', monospace;
       font-size: 1.8rem;
       font-weight: 300;
+      color: var(--accent);
     }
 
     .pos-num small {
       display: block;
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       color: var(--muted);
       text-align: right;
       margin-top: 2px;
@@ -352,8 +406,8 @@
 
     .analis-card {
       background: var(--warn-dim);
-      border: 1px solid #facc1530;
-      border-radius: 10px;
+      border: 1px solid rgba(217, 119, 6, 0.25);
+      border-radius: 12px;
       padding: 1.25rem 1.5rem;
       margin-bottom: 1.5rem;
       display: flex;
@@ -364,9 +418,9 @@
 
     .fora-card {
       background: var(--surface);
-      border: 1px dashed var(--border);
-      border-radius: 10px;
-      padding: 2rem;
+      border: 1.5px dashed var(--border2);
+      border-radius: 12px;
+      padding: 2.5rem;
       text-align: center;
       margin-bottom: 1.5rem;
     }
@@ -380,52 +434,53 @@
     .btn-entrar {
       padding: 0.65rem 1.75rem;
       background: var(--accent);
-      color: #0d0d0f;
+      color: #fff;
       font-family: 'DM Mono', monospace;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       letter-spacing: 0.07em;
       border: none;
-      border-radius: 7px;
+      border-radius: 8px;
       cursor: pointer;
       transition: all 0.18s;
+      box-shadow: 0 2px 12px var(--accent-glow);
     }
 
     .btn-entrar:hover {
-      box-shadow: 0 0 18px var(--accent-glow);
-      opacity: 0.9;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transform: translateY(-1px);
     }
 
     .btn-sair-fila {
       font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      padding: 0.4rem 0.9rem;
+      font-size: 0.65rem;
+      padding: 0.4rem 1rem;
       background: transparent;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border2);
       color: var(--muted);
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
       transition: all 0.18s;
-      margin-top: 0.5rem;
-      display: block;
       margin: 0.5rem auto 1.5rem;
+      display: block;
     }
 
     .btn-sair-fila:hover {
       border-color: var(--danger);
       color: var(--danger);
+      background: var(--danger-dim);
     }
 
-    /* ── SECTION TITLE ── */
+    /* ───────────── SECTION TITLE ───────────── */
     .sec-title {
       font-family: 'DM Mono', monospace;
       font-size: 0.6rem;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       color: var(--muted);
       text-transform: uppercase;
-      margin-bottom: 0.7rem;
+      margin-bottom: 0.75rem;
     }
 
-    /* ── FILA LIST ── */
+    /* ───────────── FILA ───────────── */
     .fila-list {
       display: flex;
       flex-direction: column;
@@ -436,11 +491,11 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.6rem 0.9rem;
+      padding: 0.65rem 0.9rem;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      transition: all 0.25s;
+      border-radius: 9px;
+      transition: all 0.22s;
       animation: item-in 0.3s ease both;
     }
 
@@ -458,12 +513,12 @@
 
     .fila-item.vez {
       background: var(--accent-dim);
-      border-color: #4ade8030;
+      border-color: rgba(196, 181, 253, 0.45);
     }
 
     .fila-item.analisando {
       background: var(--warn-dim);
-      border-color: #facc1528;
+      border-color: rgba(217, 119, 6, 0.25);
     }
 
     .fila-item.eu {
@@ -472,7 +527,7 @@
 
     .fila-pos {
       font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       color: var(--muted2);
       width: 18px;
       text-align: center;
@@ -484,18 +539,19 @@
     }
 
     .fila-nome {
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 500;
+      color: var(--text);
     }
 
     .fila-status {
-      font-size: 0.66rem;
+      font-size: 0.64rem;
       margin-top: 1px;
       color: var(--muted);
     }
 
     .fila-status.green {
-      color: var(--accent);
+      color: var(--success);
     }
 
     .fila-status.yellow {
@@ -504,26 +560,26 @@
 
     .badge-eu {
       font-family: 'DM Mono', monospace;
-      font-size: 0.58rem;
-      padding: 0.12rem 0.4rem;
+      font-size: 0.56rem;
+      padding: 0.1rem 0.4rem;
       background: var(--accent-dim);
       color: var(--accent);
-      border-radius: 3px;
+      border-radius: 4px;
     }
 
-    /* ── POPUP ── */
+    /* ───────────── POPUP ───────────── */
     .popup {
       display: none;
       position: fixed;
-      bottom: 1.25rem;
-      right: 1.25rem;
+      bottom: 1.5rem;
+      right: 1.5rem;
       background: var(--surface);
-      border: 1px solid #4ade8040;
+      border: 1px solid rgba(196, 181, 253, 0.5);
       border-left: 3px solid var(--accent);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 1rem 1.25rem;
-      max-width: 260px;
-      box-shadow: 0 8px 40px #00000077;
+      max-width: 270px;
+      box-shadow: var(--shadow-lg);
       z-index: 200;
       animation: slide-in 0.3s ease;
     }
@@ -534,7 +590,7 @@
 
     .popup-title {
       font-family: 'DM Mono', monospace;
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       letter-spacing: 0.1em;
       color: var(--accent);
       margin-bottom: 0.3rem;
@@ -542,12 +598,13 @@
 
     .popup-msg {
       font-size: 0.82rem;
+      color: var(--text);
     }
 
     .popup-close {
       position: absolute;
       top: 0.5rem;
-      right: 0.7rem;
+      right: 0.75rem;
       background: none;
       border: none;
       color: var(--muted);
@@ -593,12 +650,8 @@
   <script>
     const socket = io();
     socket.on('update_queue', () => {
-      // Atraso aleatório pequeno (100 a 1500ms) para evitar que todos os usuários 
-      // recarreguem a página no exato mesmo milissegundo e derrubem o servidor
       const delay = Math.floor(Math.random() * 4000) + 500;
-      setTimeout(() => {
-        window.location.reload();
-      }, delay);
+      setTimeout(() => { window.location.reload(); }, delay);
     });
   </script>
   {% block scripts %}{% endblock %}

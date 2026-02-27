@@ -1,182 +1,278 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login — Sistema de Fila</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Sistema de Fila</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-:root {
-  --bg: #0d0d0f;
-  --surface: #141416;
-  --border: #1e1e22;
-  --accent: #4ade80;
-  --accent-dim: #4ade8018;
-  --accent-glow: #4ade8040;
-  --danger: #f87171;
-  --danger-dim: #f8717118;
-  --text: #e8e8ea;
-  --muted: #5a5a64;
-}
+    :root {
+      --bg: #f7f5ff;
+      --surface: #ffffff;
+      --border: #e5e0f5;
+      --accent: #7c3aed;
+      --accent-mid: #8b5cf6;
+      --accent-dim: rgba(124, 58, 237, 0.10);
+      --accent-glow: rgba(124, 58, 237, 0.22);
+      --danger: #dc2626;
+      --danger-dim: rgba(220, 38, 38, 0.10);
+      --text: #1e1535;
+      --muted: #9589b8;
+    }
 
-html, body {
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-}
+    html,
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+    }
 
-.login-wrap {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-image: radial-gradient(ellipse at 50% 0%, #4ade8008 0%, transparent 60%);
-  padding: 1rem;
-}
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        radial-gradient(ellipse at 60% 0%, rgba(124, 58, 237, 0.08) 0%, transparent 65%),
+        radial-gradient(ellipse at 10% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 55%);
+      padding: 1rem;
+    }
 
-.login-card {
-  width: 100%;
-  max-width: 360px;
-  padding: 2.5rem 2rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  animation: fade-up 0.4s ease;
-}
+    .login-card {
+      width: 100%;
+      max-width: 360px;
+      padding: 2.75rem 2.25rem 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(124, 58, 237, 0.12), 0 2px 8px rgba(0, 0, 0, 0.05);
+      animation: fade-up 0.4s ease;
+    }
 
-@keyframes fade-up {
-  from { transform: translateY(16px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
+    @keyframes fade-up {
+      from {
+        transform: translateY(18px);
+        opacity: 0;
+      }
 
-.logo { text-align: center; margin-bottom: 2rem; }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
 
-.logo-dot {
-  display: inline-block;
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 24px #4ade8055;
-  margin-bottom: 0.75rem;
-  animation: pulse 2.5s ease-in-out infinite;
-}
+    .logo {
+      text-align: center;
+      margin-bottom: 2.25rem;
+    }
 
-@keyframes pulse {
-  0%,100% { box-shadow: 0 0 16px #4ade8044; }
-  50% { box-shadow: 0 0 32px #4ade8088; }
-}
+    .logo-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-mid));
+      box-shadow: 0 4px 20px var(--accent-glow);
+      margin-bottom: 1rem;
+      animation: pulse 2.8s ease-in-out infinite;
+    }
 
-.logo h1 {
-  font-family: 'DM Mono', monospace;
-  font-size: 1.1rem; font-weight: 500;
-  letter-spacing: 0.1em;
-}
+    .logo-dot svg {
+      display: block;
+    }
 
-.logo p { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+    @keyframes pulse {
 
-label {
-  display: block;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  margin-bottom: 0.35rem;
-  text-transform: uppercase;
-}
+      0%,
+      100% {
+        box-shadow: 0 4px 16px rgba(124, 58, 237, 0.30);
+      }
 
-input[type=text], input[type=password] {
-  width: 100%;
-  padding: 0.65rem 0.85rem;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.88rem;
-  outline: none;
-  transition: border-color 0.2s;
-  margin-bottom: 1rem;
-}
-input:focus { border-color: var(--accent); }
-input::placeholder { color: var(--muted); }
+      50% {
+        box-shadow: 0 6px 28px rgba(124, 58, 237, 0.50);
+      }
+    }
 
-.btn-primary {
-  width: 100%;
-  padding: 0.7rem;
-  background: var(--accent);
-  color: #0d0d0f;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.82rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  border: none;
-  border-radius: 7px;
-  cursor: pointer;
-  transition: all 0.18s;
-  margin-top: 0.25rem;
-}
-.btn-primary:hover { opacity: 0.88; box-shadow: 0 0 18px var(--accent-glow); }
-.btn-primary:active { transform: scale(0.98); }
+    .logo h1 {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--text);
+    }
 
-.hint {
-  margin-top: 1rem;
-  text-align: center;
-  font-size: 0.7rem;
-  color: var(--muted);
-}
+    .logo p {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      letter-spacing: 0.02em;
+    }
 
-.flash-msg {
-  padding: 0.75rem 1rem;
-  background: var(--danger-dim);
-  border: 1px solid #f8717140;
-  border-left: 3px solid var(--danger);
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  font-size: 0.82rem;
-  animation: slide-in 0.3s ease;
-}
+    .field {
+      margin-bottom: 1rem;
+    }
 
-@keyframes slide-in {
-  from { transform: translateY(-10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-</style>
+    label {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.64rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+    }
+
+    input[type=text],
+    input[type=password] {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin: 0;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    input::placeholder {
+      color: var(--muted);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.72rem;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-top: 0.5rem;
+      box-shadow: 0 2px 12px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-mid);
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .hint {
+      margin-top: 1.25rem;
+      text-align: center;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    .flash-msg {
+      padding: 0.7rem 1rem;
+      background: var(--danger-dim);
+      border: 1px solid rgba(220, 38, 38, 0.25);
+      border-left: 3px solid var(--danger);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.82rem;
+      animation: slide-in 0.3s ease;
+    }
+
+    @keyframes slide-in {
+      from {
+        transform: translateY(-8px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* linha divisória */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0 1rem;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="login-wrap">
-  <div class="login-card">
-    <div class="logo">
-      <div class="logo-dot"></div>
-      <h1>FILA</h1>
-      <p>Sistema de Fila Interna</p>
-    </div>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="logo">
+        <div class="logo-dot">
+          <!-- ícone de fila -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="5" cy="6" r="2.5" fill="rgba(255,255,255,0.9)" />
+            <circle cx="5" cy="12" r="2.5" fill="rgba(255,255,255,0.9)" />
+            <circle cx="5" cy="18" r="2.5" fill="rgba(255,255,255,0.9)" />
+            <rect x="10" y="4.75" width="9" height="2.5" rx="1.25" fill="rgba(255,255,255,0.9)" />
+            <rect x="10" y="10.75" width="9" height="2.5" rx="1.25" fill="rgba(255,255,255,0.9)" />
+            <rect x="10" y="16.75" width="9" height="2.5" rx="1.25" fill="rgba(255,255,255,0.9)" />
+          </svg>
+        </div>
+        <h1>FILA</h1>
+        <p>Sistema de Fila Interna</p>
+      </div>
 
-    {% with messages = get_flashed_messages() %}
+      {% with messages = get_flashed_messages() %}
       {% if messages %}
-        {% for message in messages %}
-          <div class="flash-msg">{{ message }}</div>
-        {% endfor %}
+      {% for message in messages %}
+      <div class="flash-msg">{{ message }}</div>
+      {% endfor %}
       {% endif %}
-    {% endwith %}
+      {% endwith %}
 
-    <form method="POST">
-      <label>Usuário</label>
-      <input type="text" name="username" placeholder="seu_usuario" required autofocus>
-      
-      <label>Senha</label>
-      <input type="password" name="password" placeholder="••••••••" required>
-      
-      <button type="submit" class="btn-primary">ENTRAR</button>
-    </form>
+      <form method="POST">
+        <div class="field">
+          <label>Usuário</label>
+          <input type="text" name="username" placeholder="seu_usuario" required autofocus>
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary">ENTRAR</button>
+      </form>
 
-    <p class="hint">Dica: admin/123 ou colaborador1/123</p>
+      <hr class="divider">
+      <p class="hint">Problemas de acesso? Fale com o administrador.</p>
+    </div>
   </div>
-</div>
 
 </body>
+
 </html>
