@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block extra_styles %}
+<style>
+    .avatar-wrap {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 3rem;
+    }
+
+    /* ── Header ── */
+    .avatar-page-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .btn-voltar {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.06em;
+        padding: 0.38rem 0.75rem;
+        background: transparent;
+        border: 1px solid var(--border2);
+        color: var(--muted);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.18s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-voltar:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-dim);
+    }
+
+    .avatar-page-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.02em;
+    }
+
+    .avatar-page-title span {
+        color: var(--accent);
+    }
+
+    /* ── Preview do avatar atual ── */
+    .current-preview {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+    }
+
+    .preview-img {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: 3px solid var(--accent);
+        background: var(--surface2);
+        box-shadow: 0 0 0 4px var(--accent-dim);
+        object-fit: cover;
+    }
+
+    .preview-info p {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.2rem;
+    }
+
+    .preview-info strong {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    /* ── Seção de estilo ── */
+    .section-title {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 0.8rem;
+    }
+
+    .styles-row {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.75rem;
+    }
+
+    .style-btn {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.64rem;
+        letter-spacing: 0.06em;
+        padding: 0.38rem 0.9rem;
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        color: var(--text-mid);
+        border-radius: 99px;
+        cursor: pointer;
+        transition: all 0.18s;
+        user-select: none;
+    }
+
+    .style-btn:hover,
+    .style-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        box-shadow: 0 2px 10px var(--accent-glow);
+    }
+
+    /* ── Grade de avatares ── */
+    .avatars-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.6rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 600px) {
+        .avatars-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @media (max-width: 420px) {
+        .avatars-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .avatar-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.6rem 0.4rem;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.18s;
+        user-select: none;
+    }
+
+    .avatar-option:hover {
+        border-color: var(--accent-mid);
+        background: var(--surface2);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .avatar-option.selected {
+        border-color: var(--accent);
+        background: var(--accent-dim);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .avatar-option img {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--surface2);
+        display: block;
+    }
+
+    .avatar-option span {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.52rem;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+    }
+
+    /* ── Botão salvar ── */
+    .save-bar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .save-bar p {
+        font-size: 0.78rem;
+        color: var(--muted);
+        flex: 1;
+    }
+
+    .btn-save {
+        padding: 0.55rem 1.5rem;
+        background: var(--accent);
+        color: #fff;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.07em;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.18s;
+        box-shadow: 0 2px 10px var(--accent-glow);
+    }
+
+    .btn-save:hover {
+        background: var(--accent-mid);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 18px var(--accent-glow);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="avatar-wrap">
+
+    <!-- Header -->
+    <div class="avatar-page-header">
+        <a href="{{ url_for('index') }}" class="btn-voltar">← VOLTAR</a>
+        <h1 class="avatar-page-title">Meu <span>Avatar</span></h1>
+    </div>
+
+    <!-- Preview atual -->
+    <div class="current-preview">
+        <img class="preview-img" id="preview-img"
+            src="https://api.dicebear.com/9.x/{{ current_style }}/svg?seed={{ current_seed }}&backgroundColor=transparent"
+            alt="Seu avatar atual">
+        <div class="preview-info">
+            <strong>{{ current_user.username }}</strong>
+            <p id="preview-label">{{ current_style }} · {{ current_seed }}</p>
+        </div>
+    </div>
+
+    <form method="POST" id="avatar-form">
+
+        <!-- Escolher estilo -->
+        <p class="section-title">Estilo</p>
+        <div class="styles-row" id="styles-row">
+            {% for s in styles %}
+            <button type="button" class="style-btn {% if s.id == current_style %}active{% endif %}"
+                data-style="{{ s.id }}">{{ s.label }}</button>
+            {% endfor %}
+        </div>
+
+        <!-- Escolher personagem -->
+        <p class="section-title">Personagem</p>
+        <div class="avatars-grid" id="avatars-grid">
+            {% for seed in seeds %}
+            <div class="avatar-option {% if seed == current_seed %}selected{% endif %}" data-seed="{{ seed }}">
+                <img src="https://api.dicebear.com/9.x/{{ current_style }}/svg?seed={{ seed }}&backgroundColor=transparent"
+                    alt="{{ seed }}" loading="lazy">
+                <span>{{ seed }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Campos hidden -->
+        <input type="hidden" name="avatar_style" id="avatar_style" value="{{ current_style }}">
+        <input type="hidden" name="avatar_seed" id="avatar_seed" value="{{ current_seed }}">
+
+        <!-- Salvar -->
+        <div class="save-bar">
+            <p>Clique em um personagem para selecionar, depois salve.</p>
+            <button type="submit" class="btn-save">SALVAR AVATAR</button>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const BASE_URL = 'https://api.dicebear.com/9.x';
+    let selStyle = document.getElementById('avatar_style').value;
+    let selSeed = document.getElementById('avatar_seed').value;
+
+    const previewImg = document.getElementById('preview-img');
+    const previewLabel = document.getElementById('preview-label');
+    const styleInput = document.getElementById('avatar_style');
+    const seedInput = document.getElementById('avatar_seed');
+
+    function buildUrl(style, seed) {
+        return `${BASE_URL}/${style}/svg?seed=${seed}&backgroundColor=transparent`;
+    }
+
+    function updatePreview() {
+        previewImg.src = buildUrl(selStyle, selSeed);
+        previewLabel.textContent = `${selStyle} · ${selSeed}`;
+        styleInput.value = selStyle;
+        seedInput.value = selSeed;
+    }
+
+    function refreshGrid() {
+        document.querySelectorAll('.avatar-option img').forEach(img => {
+            const seed = img.closest('.avatar-option').dataset.seed;
+            img.src = buildUrl(selStyle, seed);
+        });
+        // Atualiza selected
+        document.querySelectorAll('.avatar-option').forEach(el => {
+            el.classList.toggle('selected', el.dataset.seed === selSeed);
+        });
+    }
+
+    // Clique nos botões de estilo
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selStyle = btn.dataset.style;
+            refreshGrid();
+            updatePreview();
+        });
+    });
+
+    // Clique nas opções de avatar
+    document.querySelectorAll('.avatar-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            selSeed = opt.dataset.seed;
+            updatePreview();
+        });
+    });
+</script>
+{% endblock %}

@@ -14,7 +14,15 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True, nullable=True)
     password = db.Column(db.String(100), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    
+    avatar_style = db.Column(db.String(50), default='fun-emoji')
+    avatar_seed = db.Column(db.String(50), default=None)
+
+    @property
+    def avatar_url(self):
+        seed = self.avatar_seed or self.username
+        style = self.avatar_style or 'fun-emoji'
+        return f'https://api.dicebear.com/9.x/{style}/svg?seed={seed}&backgroundColor=transparent'
+
     # Relacionamento com o histórico
     attendances = db.relationship('Attendance', backref='colaborador', lazy=True)
 

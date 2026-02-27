@@ -124,6 +124,12 @@
 
       <div class="fila-pos">{{ loop.index }}</div>
 
+      <!-- Avatar miniatura -->
+      <img
+        src="https://api.dicebear.com/9.x/{{ entry.user.avatar_style or 'fun-emoji' }}/svg?seed={{ entry.user.avatar_seed or entry.user.username }}&backgroundColor=transparent"
+        alt="avatar"
+        style="width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--accent);flex-shrink:0;">
+
       <div class="fila-info">
         <div class="fila-nome">
           {{ entry.user.username }}

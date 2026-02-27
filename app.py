@@ -53,6 +53,35 @@ db.init_app(app)
 with app.app_context():
     from models import User # Import garantido aqui
     db.create_all()
+
+    # ── Migração automática: adicionar colunas de avatar se não existirem ──
+    try:
+        is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
+        if is_postgres:
+            # PostgreSQL suporta ADD COLUMN IF NOT EXISTS nativamente
+            db.session.execute(db.text(
+                "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS avatar_style VARCHAR(50) DEFAULT 'fun-emoji'"
+            ))
+            db.session.execute(db.text(
+                "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS avatar_seed VARCHAR(50)"
+            ))
+        else:
+            # SQLite: verificar via PRAGMA antes de alterar
+            result = db.session.execute(db.text("PRAGMA table_info(\"user\")")).fetchall()
+            cols = [row[1] for row in result]
+            if 'avatar_style' not in cols:
+                db.session.execute(db.text(
+                    "ALTER TABLE \"user\" ADD COLUMN avatar_style VARCHAR(50) DEFAULT 'fun-emoji'"
+                ))
+            if 'avatar_seed' not in cols:
+                db.session.execute(db.text(
+                    "ALTER TABLE \"user\" ADD COLUMN avatar_seed VARCHAR(50)"
+                ))
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"[migração avatar] aviso: {e}")
+
     usuarios_iniciais = [
         {'username': 'Jarbas', 'is_admin': False},
         {'username': 'Maiara', 'is_admin': False},
@@ -90,6 +119,13 @@ login_manager.login_view = 'login'
 socketio = SocketIO(app)
 
 user_connections = {}
+
+# Injeta avatar_url do user atual em todos os templates
+@app.context_processor
+def inject_user_avatar():
+    if current_user.is_authenticated:
+        return {'current_avatar_url': current_user.avatar_url}
+    return {'current_avatar_url': None}
 
 @socketio.on('connect')
 def on_connect():
@@ -443,6 +479,46 @@ def export_xlsx():
     output.headers["Content-Disposition"] = f"attachment; filename=relatorio_atendimentos_{start_date.strftime('%Y%m%d')}_a_{end_date.strftime('%Y%m%d')}.xlsx"
     output.headers["Content-type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     return output
+
+# ── ROTAS DE AVATAR ──
+AVATAR_STYLES = [
+    {'id': 'fun-emoji',  'label': 'Emoji Fun'},
+    {'id': 'bottts',     'label': 'Robôs'},
+    {'id': 'pixel-art',  'label': 'Pixel Art'},
+    {'id': 'adventurer', 'label': 'Aventureiro'},
+    {'id': 'croodles',   'label': 'Doodles'},
+    {'id': 'thumbs',     'label': 'Thumbs'},
+]
+
+AVATAR_SEEDS = [
+    'Felix', 'Luna', 'Nala', 'Garfield', 'Bandit', 'Mochi',
+    'Zara', 'Cosmo', 'Pixel', 'Sushi', 'Biscuit', 'Pepper',
+]
+
+@app.route('/profile/avatar', methods=['GET', 'POST'])
+@login_required
+def profile_avatar():
+    if request.method == 'POST':
+        style = request.form.get('avatar_style', 'fun-emoji')
+        seed  = request.form.get('avatar_seed',  current_user.username)
+        # Validar
+        valid_styles = [s['id'] for s in AVATAR_STYLES]
+        if style not in valid_styles:
+            style = 'fun-emoji'
+        if seed not in AVATAR_SEEDS:
+            seed = AVATAR_SEEDS[0]
+        current_user.avatar_style = style
+        current_user.avatar_seed  = seed
+        db.session.commit()
+        flash('Avatar atualizado com sucesso!')
+        return redirect(url_for('profile_avatar'))
+    return render_template(
+        'avatar.html',
+        styles=AVATAR_STYLES,
+        seeds=AVATAR_SEEDS,
+        current_style=current_user.avatar_style or 'fun-emoji',
+        current_seed=current_user.avatar_seed or current_user.username,
+    )
 
 @app.route('/admin/create_user', methods=['POST'])
 @login_required
