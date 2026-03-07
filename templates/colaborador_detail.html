@@ -223,6 +223,55 @@
         font-size: 0.78rem;
         font-style: italic;
     }
+
+    /* badges de tipo de atendimento */
+    .badge-type {
+        display: inline-flex;
+        align-items: center;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.54rem;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        padding: 0.12rem 0.44rem;
+        border-radius: 5px;
+        white-space: nowrap;
+    }
+
+    .badge-cns {
+        background: rgba(37, 99, 235, 0.12);
+        color: #2563eb;
+        border: 1px solid rgba(37, 99, 235, 0.25);
+    }
+
+    .badge-trt {
+        background: rgba(217, 119, 6, 0.12);
+        color: #d97706;
+        border: 1px solid rgba(217, 119, 6, 0.25);
+    }
+
+    .badge-cri {
+        background: rgba(5, 150, 105, 0.12);
+        color: #059669;
+        border: 1px solid rgba(5, 150, 105, 0.25);
+    }
+
+    [data-theme="dark"] .badge-cns {
+        color: #60a5fa;
+        background: rgba(96, 165, 250, 0.12);
+        border-color: rgba(96, 165, 250, 0.25);
+    }
+
+    [data-theme="dark"] .badge-trt {
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.12);
+        border-color: rgba(251, 191, 36, 0.25);
+    }
+
+    [data-theme="dark"] .badge-cri {
+        color: #34d399;
+        background: rgba(52, 211, 153, 0.12);
+        border-color: rgba(52, 211, 153, 0.25);
+    }
 </style>
 {% endblock %}
 
@@ -262,13 +311,14 @@
                     <tr>
                         <th>Data e Hora</th>
                         <th>Ação</th>
+                        <th>Tipo</th>
                         <th>Duração</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if not history %}
                     <tr>
-                        <td colspan="3" class="empty-state">Nenhuma atividade registrada</td>
+                        <td colspan="4" class="empty-state">Nenhuma atividade registrada</td>
                     </tr>
                     {% else %}
                     {% for record in history %}
@@ -279,6 +329,17 @@
                             <span class="badge badge-concluido">Concluído</span>
                             {% else %}
                             <span class="badge badge-pulado">Pulado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.service_type == 'Consulta' %}
+                            <span class="badge-type badge-cns">CNS</span>
+                            {% elif record.service_type == 'Troca de Titularidade' %}
+                            <span class="badge-type badge-trt">TRT</span>
+                            {% elif record.service_type == 'Criação de Matrícula' %}
+                            <span class="badge-type badge-cri">CRI</span>
+                            {% else %}
+                            <span style="color:var(--muted);font-size:0.7rem;">—</span>
                             {% endif %}
                         </td>
                         <td>

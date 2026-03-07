@@ -300,6 +300,38 @@
     border: 1px solid var(--border);
   }
 
+  /* badges de tipo de atendimento */
+  .badge-type {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    padding: 0.12rem 0.44rem;
+    border-radius: 5px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .badge-cns {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.25);
+  }
+
+  .badge-trt {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.25);
+  }
+
+  .badge-cri {
+    background: rgba(5, 150, 105, 0.12);
+    color: #059669;
+    border: 1px solid rgba(5, 150, 105, 0.25);
+  }
+
   /* ─────────── 2 COLUNAS ─────────── */
   .two-col {
     display: grid;
@@ -618,6 +650,13 @@
     width: 20px;
     text-align: center;
   }
+
+  .queue-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
 </style>
 {% endblock %}
 
@@ -719,20 +758,21 @@
           <tr>
             <th>#</th>
             <th>Nome</th>
+            <th>Entrada</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
           {% if not queue %}
           <tr>
-            <td colspan="3" class="empty-state">Ninguém na fila</td>
+            <td colspan="4" class="empty-state">Ninguém na fila</td>
           </tr>
           {% else %}
           {% for entry in queue %}
           <tr>
             <td class="queue-pos">{{ loop.index }}</td>
             <td>
-              <div style="display:flex; align-items:center; gap:0.5rem;">
+              <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                 {% if entry.user %}
                 <img
                   src="https://api.dicebear.com/9.x/{{ entry.user.avatar_style or 'fun-emoji' }}/svg?seed={{ entry.user.avatar_seed or entry.user.username }}&backgroundColor=transparent"
@@ -740,8 +780,19 @@
                   style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--accent);flex-shrink:0;">
                 {% endif %}
                 <span style="font-weight:500;">{{ entry.user.username if entry.user else 'Desconhecido' }}</span>
+                <!-- Badge tipo de atendimento -->
+                {% if entry.status == 'Analisando' and entry.service_type %}
+                {% if entry.service_type == 'Consulta' %}
+                <span class="badge-type badge-cns">CNS</span>
+                {% elif entry.service_type == 'Troca de Titularidade' %}
+                <span class="badge-type badge-trt">TRT</span>
+                {% elif entry.service_type == 'Criação de Matrícula' %}
+                <span class="badge-type badge-cri">CRI</span>
+                {% endif %}
+                {% endif %}
               </div>
             </td>
+            <td class="queue-time">{{ entry.entered_at.strftime('%H:%M') if entry.entered_at else '-' }}</td>
             <td>
               {% if loop.first and entry.status == 'Disponível' %}
               <span class="badge badge-vez">Na vez</span>
@@ -768,6 +819,7 @@
           <thead>
             <tr>
               <th>Colaborador</th>
+              <th>Tipo</th>
               <th>Início</th>
               <th>Duração</th>
             </tr>
@@ -775,12 +827,23 @@
           <tbody>
             {% if not history %}
             <tr>
-              <td colspan="3" class="empty-state">Nenhum atendimento</td>
+              <td colspan="4" class="empty-state">Nenhum atendimento</td>
             </tr>
             {% else %}
             {% for record in history %}
             <tr>
               <td class="hist-name">{{ record.colaborador.username }}</td>
+              <td>
+                {% if record.service_type == 'Consulta' %}
+                <span class="badge-type badge-cns">CNS</span>
+                {% elif record.service_type == 'Troca de Titularidade' %}
+                <span class="badge-type badge-trt">TRT</span>
+                {% elif record.service_type == 'Criação de Matrícula' %}
+                <span class="badge-type badge-cri">CRI</span>
+                {% else %}
+                <span style="color:var(--muted);font-size:0.7rem;">—</span>
+                {% endif %}
+              </td>
               <td class="hist-inicio">{{ record.inicio }}</td>
               <td class="hist-duracao">{{ record.duracao }}</td>
             </tr>

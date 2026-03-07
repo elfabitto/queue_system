@@ -15,7 +15,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(100), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     avatar_style = db.Column(db.String(50), default='fun-emoji')
-    avatar_seed = db.Column(db.String(50), default=None)
+    avatar_seed = db.Column(db.String(100), default=None)
 
     @property
     def avatar_url(self):
@@ -31,12 +31,15 @@ class Queue(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
     status = db.Column(db.String(20), default='Disponível') # Disponível, Analisando
     entered_at = db.Column(db.DateTime, default=get_brt_time)
-    
+    left_at = db.Column(db.DateTime, nullable=True)   # hora de saída da fila
+    service_type = db.Column(db.String(30), nullable=True)  # tipo de atendimento em andamento
+
     user = db.relationship('User', backref=db.backref('queue_entry', uselist=False))
 
 class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    service_type = db.Column(db.String(30), nullable=True)  # Consulta, Troca de Titularidade, Criação de Matrícula
     started_at = db.Column(db.DateTime, default=get_brt_time)
     finished_at = db.Column(db.DateTime, nullable=True)
     duration_seconds = db.Column(db.Integer, nullable=True)

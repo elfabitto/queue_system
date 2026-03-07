@@ -54,19 +54,28 @@ with app.app_context():
     from models import User # Import garantido aqui
     db.create_all()
 
-    # ── Migração automática: adicionar colunas de avatar se não existirem ──
+    # ── Migração automática de colunas ──
     try:
         is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
         if is_postgres:
-            # PostgreSQL suporta ADD COLUMN IF NOT EXISTS nativamente
             db.session.execute(db.text(
                 "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS avatar_style VARCHAR(50) DEFAULT 'fun-emoji'"
             ))
             db.session.execute(db.text(
-                "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS avatar_seed VARCHAR(50)"
+                "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS avatar_seed VARCHAR(100)"
+            ))
+            db.session.execute(db.text(
+                "ALTER TABLE queue ADD COLUMN IF NOT EXISTS left_at TIMESTAMP"
+            ))
+            db.session.execute(db.text(
+                "ALTER TABLE queue ADD COLUMN IF NOT EXISTS service_type VARCHAR(30)"
+            ))
+            db.session.execute(db.text(
+                "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS service_type VARCHAR(30)"
             ))
         else:
             # SQLite: verificar via PRAGMA antes de alterar
+            # Tabela user
             result = db.session.execute(db.text("PRAGMA table_info(\"user\")")).fetchall()
             cols = [row[1] for row in result]
             if 'avatar_style' not in cols:
@@ -75,12 +84,30 @@ with app.app_context():
                 ))
             if 'avatar_seed' not in cols:
                 db.session.execute(db.text(
-                    "ALTER TABLE \"user\" ADD COLUMN avatar_seed VARCHAR(50)"
+                    "ALTER TABLE \"user\" ADD COLUMN avatar_seed VARCHAR(100)"
+                ))
+            # Tabela queue
+            result_q = db.session.execute(db.text("PRAGMA table_info(queue)")).fetchall()
+            cols_q = [row[1] for row in result_q]
+            if 'left_at' not in cols_q:
+                db.session.execute(db.text(
+                    "ALTER TABLE queue ADD COLUMN left_at TIMESTAMP"
+                ))
+            if 'service_type' not in cols_q:
+                db.session.execute(db.text(
+                    "ALTER TABLE queue ADD COLUMN service_type VARCHAR(30)"
+                ))
+            # Tabela attendance
+            result_a = db.session.execute(db.text("PRAGMA table_info(attendance)")).fetchall()
+            cols_a = [row[1] for row in result_a]
+            if 'service_type' not in cols_a:
+                db.session.execute(db.text(
+                    "ALTER TABLE attendance ADD COLUMN service_type VARCHAR(30)"
                 ))
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        print(f"[migração avatar] aviso: {e}")
+        print(f"[migração] aviso: {e}")
 
     usuarios_iniciais = [
         {'username': 'Jarbas', 'is_admin': False},
@@ -201,20 +228,34 @@ def join_queue():
 def leave_queue():
     entry = Queue.query.filter_by(user_id=current_user.id).first()
     if entry:
+        entry.left_at = get_brt_time()
+        db.session.commit()
         db.session.delete(entry)
         db.session.commit()
         socketio.emit('update_queue')
     return redirect(url_for('index'))
+
+# Mapeamento de tipos de atendimento
+SERVICE_TYPES = {
+    'Consulta': 'CNS',
+    'Troca de Titularidade': 'TRT',
+    'Criação de Matrícula': 'CRI',
+}
 
 @app.route('/start_task', methods=['POST'])
 @login_required
 def start_task():
     entry = Queue.query.filter_by(user_id=current_user.id).first()
     if entry and entry.status == 'Disponível':
+        service_type = request.form.get('service_type', '')
+        if service_type not in SERVICE_TYPES:
+            service_type = 'Consulta'  # fallback
+        
         entry.status = 'Analisando'
+        entry.service_type = service_type
         
         # Criar registro de atendimento
-        attendance = Attendance(user_id=current_user.id)
+        attendance = Attendance(user_id=current_user.id, service_type=service_type)
         db.session.add(attendance)
         db.session.commit()
         
@@ -320,7 +361,6 @@ def admin():
         return redirect(url_for('index'))
     
     all_users = User.query.all()
-    # Tratar history explicitamente para evitar erros de renderização no template cego (usando '.colaborador' e 'duration_seconds')
     raw_history = Attendance.query.filter(Attendance.finished_at.isnot(None)).order_by(Attendance.finished_at.desc()).limit(50).all()
     history = []
     for r in raw_history:
@@ -329,7 +369,8 @@ def admin():
             'colaborador': {'username': r.colaborador.username if hasattr(r, 'colaborador') and r.colaborador else 'Desconhecido'},
             'duration_seconds': r.duration_seconds or 0,
             'duracao': format_duration(r.duration_seconds),
-            'inicio': inicio_str
+            'inicio': inicio_str,
+            'service_type': r.service_type or '',
         })
     
     stats = []
@@ -339,13 +380,11 @@ def admin():
             skip_count = Skip.query.filter_by(user_id=user.id).count()
             stats.append({'id': user.id, 'username': user.username, 'count': count, 'skip_count': skip_count})
     
-    # Obter estatísticas diárias
     daily_stats = get_daily_stats()
-    
-    # Pegar a fila completa para exibir no painel admin
     queue_list = Queue.query.order_by(Queue.entered_at.asc()).all()
         
-    return render_template('admin.html', stats=stats, history=history, all_users=all_users, daily_stats=daily_stats, queue=queue_list)
+    return render_template('admin.html', stats=stats, history=history, all_users=all_users,
+                           daily_stats=daily_stats, queue=queue_list, service_types=SERVICE_TYPES)
 
 @app.route('/admin/colaborador/<int:user_id>')
 @login_required
@@ -378,13 +417,15 @@ def view_colaborador(user_id):
         history.append({
             'tipo': 'Concluído',
             'data': a.finished_at,
-            'duracao': format_duration(a.duration_seconds)
+            'duracao': format_duration(a.duration_seconds),
+            'service_type': a.service_type or ''
         })
     for s in skips:
         history.append({
             'tipo': 'Pulado',
             'data': s.skipped_at,
-            'duracao': "-"
+            'duracao': "-",
+            'service_type': ''
         })
         
     history.sort(key=lambda x: x['data'], reverse=True)
@@ -394,7 +435,8 @@ def view_colaborador(user_id):
                            history=history, 
                            total_concluidos=total_count,
                            total_pulados=len(skips),
-                           avg_time=format_duration(avg_seconds))
+                           avg_time=format_duration(avg_seconds),
+                           service_types=SERVICE_TYPES)
 
 @app.route('/admin/export')
 @login_required
@@ -442,6 +484,7 @@ def export_xlsx():
         records.append({
             'data': a.finished_at,
             'colaborador': a.colaborador.username if a.colaborador else 'Desconhecido',
+            'service_type': a.service_type or '',
             'acao': 'Concluído',
             'duracao_segundos': a.duration_seconds or 0
         })
@@ -450,6 +493,7 @@ def export_xlsx():
         records.append({
             'data': s.skipped_at,
             'colaborador': s.user.username if s.user else 'Desconhecido',
+            'service_type': '',
             'acao': 'Pulado',
             'duracao_segundos': 0
         })
@@ -460,12 +504,13 @@ def export_xlsx():
     wb = Workbook()
     ws = wb.active
     ws.title = "Relatório"
-    ws.append(['Data/Hora', 'Colaborador', 'Ação', 'Tempo de Atendimento (Segundos)', 'Tempo de Atendimento (Formatado)'])
+    ws.append(['Data/Hora', 'Colaborador', 'Tipo de Atendimento', 'Ação', 'Tempo de Atendimento (Segundos)', 'Tempo de Atendimento (Formatado)'])
     
     for r in records:
         ws.append([
             r['data'].strftime('%d/%m/%Y %H:%M:%S'),
             r['colaborador'],
+            r.get('service_type', ''),
             r['acao'],
             r['duracao_segundos'],
             format_duration(r['duracao_segundos'])
@@ -520,13 +565,16 @@ AVATAR_SEEDS = [
 def profile_avatar():
     if request.method == 'POST':
         style = request.form.get('avatar_style', 'fun-emoji')
-        seed  = request.form.get('avatar_seed',  current_user.username)
-        # Validar
+        seed  = request.form.get('avatar_seed', current_user.username).strip()
+        # Validar estilo
         valid_styles = [s['id'] for s in AVATAR_STYLES]
         if style not in valid_styles:
             style = 'fun-emoji'
-        if seed not in AVATAR_SEEDS:
-            seed = AVATAR_SEEDS[0]
+        # Seed livre: se vazia, usa o username
+        if not seed:
+            seed = current_user.username
+        # Limitar tamanho
+        seed = seed[:80]
         current_user.avatar_style = style
         current_user.avatar_seed  = seed
         db.session.commit()
@@ -535,7 +583,6 @@ def profile_avatar():
     return render_template(
         'avatar.html',
         styles=AVATAR_STYLES,
-        seeds=AVATAR_SEEDS,
         current_style=current_user.avatar_style or 'fun-emoji',
         current_seed=current_user.avatar_seed or current_user.username,
     )

@@ -2,7 +2,7 @@
 
 {% block extra_styles %}
 <style>
-  /* ── Inputs globais (usados em forms do index) ── */
+  /* ── Inputs globais ── */
   input {
     width: 100%;
     padding: 0.6rem 0.85rem;
@@ -24,6 +24,190 @@
 
   input::placeholder {
     color: var(--muted);
+  }
+
+  /* ── Badges de tipo de atendimento ── */
+  .badge-type {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.54rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    padding: 0.12rem 0.44rem;
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+
+  .badge-cns {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.25);
+  }
+
+  .badge-trt {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.25);
+  }
+
+  .badge-cri {
+    background: rgba(5, 150, 105, 0.12);
+    color: #059669;
+    border: 1px solid rgba(5, 150, 105, 0.25);
+  }
+
+  [data-theme="dark"] .badge-cns { color: #60a5fa; background: rgba(96,165,250,0.12); border-color: rgba(96,165,250,0.25); }
+  [data-theme="dark"] .badge-trt { color: #fbbf24; background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.25); }
+  [data-theme="dark"] .badge-cri { color: #34d399; background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.25); }
+
+  /* ── Hora de entrada na fila ── */
+  .fila-hora {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── Modal de tipo de atendimento ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem 1.75rem 1.5rem;
+    width: min(90vw, 380px);
+    box-shadow: var(--shadow-lg);
+    animation: slide-in 0.2s ease;
+  }
+
+  .modal-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+
+  .modal-subtitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+  }
+
+  .type-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .type-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.85rem 1rem;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.18s;
+    user-select: none;
+  }
+
+  .type-opt:hover {
+    border-color: var(--accent-mid);
+    background: var(--accent-dim);
+  }
+
+  .type-opt.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .type-opt-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.22rem 0.6rem;
+    border-radius: 6px;
+    flex-shrink: 0;
+    min-width: 44px;
+    text-align: center;
+  }
+
+  .type-opt-badge.cns { background: rgba(37,99,235,0.15); color: #2563eb; }
+  .type-opt-badge.trt { background: rgba(217,119,6,0.15); color: #d97706; }
+  .type-opt-badge.cri { background: rgba(5,150,105,0.15); color: #059669; }
+
+  [data-theme="dark"] .type-opt-badge.cns { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  [data-theme="dark"] .type-opt-badge.trt { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  [data-theme="dark"] .type-opt-badge.cri { background: rgba(52,211,153,0.15); color: #34d399; }
+
+  .type-opt-label {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+  }
+
+  .btn-modal-cancel {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .btn-modal-cancel:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: var(--danger-dim);
+  }
+
+  .btn-modal-confirm {
+    padding: 0.5rem 1.25rem;
+    background: var(--success);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+  }
+
+  .btn-modal-confirm:hover {
+    opacity: 0.88;
   }
 </style>
 {% endblock %}
@@ -51,9 +235,8 @@
     <div class="card-chip chip-green">▶ É A SUA VEZ</div>
     <div class="card-name">{{ current_user.username }}</div>
     <div class="btn-row">
-      <form action="{{ url_for('start_task') }}" method="POST">
-        <button type="submit" class="btn-green">INICIAR</button>
-      </form>
+      <!-- Abre o modal em vez de enviar diretamente -->
+      <button type="button" class="btn-green" id="btn-abrir-modal">INICIAR</button>
       <form action="{{ url_for('skip_task') }}" method="POST">
         <button type="submit" class="btn-skip">PULAR</button>
       </form>
@@ -100,7 +283,13 @@
   <div class="analis-card">
     <div>
       <div class="card-chip chip-yellow">● ANALISANDO</div>
+      {% if user_entry.service_type %}
+      <div style="font-size:0.78rem; color:var(--muted); margin-top:0.25rem;">
+        {{ user_entry.service_type }}
+      </div>
+      {% else %}
       <div style="font-size:0.78rem; color:var(--muted); margin-top:0.25rem;">Você está analisando uma demanda.</div>
+      {% endif %}
     </div>
     <form action="{{ url_for('finish_task') }}" method="POST">
       <button type="submit" class="btn-yellow">FINALIZAR</button>
@@ -131,10 +320,21 @@
         style="width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--accent);flex-shrink:0;">
 
       <div class="fila-info">
-        <div class="fila-nome">
+        <div class="fila-nome" style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
           {{ entry.user.username }}
           {% if entry.user_id == current_user.id %}(Você){% endif %}
+          <!-- Badge de tipo de atendimento -->
+          {% if entry.status == 'Analisando' and entry.service_type %}
+            {% if entry.service_type == 'Consulta' %}
+              <span class="badge-type badge-cns">CNS</span>
+            {% elif entry.service_type == 'Troca de Titularidade' %}
+              <span class="badge-type badge-trt">TRT</span>
+            {% elif entry.service_type == 'Criação de Matrícula' %}
+              <span class="badge-type badge-cri">CRI</span>
+            {% endif %}
+          {% endif %}
         </div>
+        <div class="fila-hora">⏱ {{ entry.entered_at.strftime('%H:%M') if entry.entered_at else '' }}</div>
         <div class="fila-status
             {% if entry.status == 'Disponível' and loop.first %}green{% endif %}
             {% if entry.status == 'Analisando' %}yellow{% endif %}">
@@ -156,6 +356,38 @@
   </div>
 
 </div>
+
+<!-- MODAL DE TIPO DE ATENDIMENTO -->
+<div class="modal-overlay" id="modal-tipo">
+  <div class="modal-box">
+    <div class="modal-title">Iniciar atendimento</div>
+    <div class="modal-subtitle">Qual o tipo de atendimento?</div>
+
+    <div class="type-options">
+      <div class="type-opt selected" data-type="Consulta">
+        <span class="type-opt-badge cns">CNS</span>
+        <span class="type-opt-label">Consulta</span>
+      </div>
+      <div class="type-opt" data-type="Troca de Titularidade">
+        <span class="type-opt-badge trt">TRT</span>
+        <span class="type-opt-label">Troca de Titularidade</span>
+      </div>
+      <div class="type-opt" data-type="Criação de Matrícula">
+        <span class="type-opt-badge cri">CRI</span>
+        <span class="type-opt-label">Criação de Matrícula</span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-modal-cancel" id="btn-modal-cancel">CANCELAR</button>
+      <form action="{{ url_for('start_task') }}" method="POST" id="form-start-task" style="margin:0;">
+        <input type="hidden" name="service_type" id="input-service-type" value="Consulta">
+        <button type="submit" class="btn-modal-confirm">INICIAR</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -195,5 +427,39 @@
   } else {
     localStorage.removeItem('notified_turn');
   }
+
+  // ── Modal de tipo de atendimento ──
+  const modal        = document.getElementById('modal-tipo');
+  const btnAbrir     = document.getElementById('btn-abrir-modal');
+  const btnCancelar  = document.getElementById('btn-modal-cancel');
+  const inputType    = document.getElementById('input-service-type');
+
+  if (btnAbrir) {
+    btnAbrir.addEventListener('click', () => {
+      modal.classList.add('open');
+    });
+  }
+
+  if (btnCancelar) {
+    btnCancelar.addEventListener('click', () => {
+      modal.classList.remove('open');
+    });
+  }
+
+  // Fechar ao clicar fora do box
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('open');
+    });
+  }
+
+  // Seleção das opções de tipo
+  document.querySelectorAll('.type-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.type-opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      inputType.value = opt.dataset.type;
+    });
+  });
 </script>
 {% endblock %}
