@@ -303,8 +303,9 @@
     <div class="preview-hero">
         <div class="preview-img-wrap">
             <img class="preview-img" id="preview-img"
-                src="https://api.dicebear.com/9.x/{{ current_style }}/svg?seed={{ current_seed }}&backgroundColor=transparent"
+                src="https://api.dicebear.com/9.x/{{ current_style }}/svg?seed={{ current_seed }}&{% if current_style.endswith('-neutral') %}backgroundColor={{ neutral_bg_for(current_seed) }}{% else %}backgroundColor=transparent{% endif %}"
                 alt="Seu avatar atual">
+
         </div>
         <div class="preview-info">
             <strong>{{ current_user.username }}</strong>
@@ -344,7 +345,7 @@
                 'Sushi', 'Biscuit', 'Pepper', 'Shadow', 'Ninja', 'Storm', 'Blaze', 'Nova', 'Atlas', 'Echo', 'Orion'] %}
                 {% for seed in suggestions %}
                 <div class="avatar-option {% if seed == current_seed %}selected{% endif %}" data-seed="{{ seed }}">
-                    <img src="https://api.dicebear.com/9.x/{{ current_style }}/svg?seed={{ seed }}&backgroundColor=transparent"
+                    <img src="https://api.dicebear.com/9.x/{{ current_style }}/svg?seed={{ seed }}&{% if current_style.endswith('-neutral') %}backgroundColor={{ neutral_bg_for(seed) }}{% else %}backgroundColor=transparent{% endif %}"
                         alt="{{ seed }}" loading="lazy">
                     <span>{{ seed }}</span>
                 </div>
@@ -366,6 +367,16 @@
 {% block scripts %}
 <script>
     const BASE_URL = 'https://api.dicebear.com/9.x';
+    // Paleta de tons de pele + amarelo emoji (sem o #)
+    const NEUTRAL_COLORS = ['f5cba7', 'e3a87a', 'c68642', 'a0522d', '6b3a2a', 'ffd93d'];
+
+    // Cor determinística baseada no seed (mesma lógica do backend)
+    function getBgColor(seed) {
+        let sum = 0;
+        for (let i = 0; i < seed.length; i++) sum += seed.charCodeAt(i);
+        return NEUTRAL_COLORS[sum % NEUTRAL_COLORS.length];
+    }
+
     let selStyle = document.getElementById('avatar_style').value;
     let selSeed = document.getElementById('avatar_seed').value;
 
@@ -376,7 +387,9 @@
     const customInput = document.getElementById('seed-custom-input');
 
     function buildUrl(style, seed) {
-        return `${BASE_URL}/${style}/svg?seed=${encodeURIComponent(seed)}&backgroundColor=transparent`;
+        const bg = style.endsWith('-neutral') ? getBgColor(seed) : 'transparent';
+        const bgParam = style.endsWith('-neutral') ? `backgroundColor=${bg}` : 'backgroundColor=transparent';
+        return `${BASE_URL}/${style}/svg?seed=${encodeURIComponent(seed)}&${bgParam}`;
     }
 
     function updatePreview() {

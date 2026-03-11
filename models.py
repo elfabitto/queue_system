@@ -17,10 +17,18 @@ class User(UserMixin, db.Model):
     avatar_style = db.Column(db.String(50), default='fun-emoji')
     avatar_seed = db.Column(db.String(100), default=None)
 
+    # Paleta de tons de pele + amarelo emoji
+    NEUTRAL_BG_COLORS = ['f5cba7', 'e3a87a', 'c68642', 'a0522d', '6b3a2a', 'ffd93d']
+
     @property
     def avatar_url(self):
         seed = self.avatar_seed or self.username
-        style = self.avatar_style or 'fun-emoji'
+        style = self.avatar_style or 'adventurer'
+        if style.endswith('-neutral'):
+            # Cor determinística baseada no seed (consistente para o mesmo usuário)
+            color_index = sum(ord(c) for c in seed) % len(self.NEUTRAL_BG_COLORS)
+            bg = self.NEUTRAL_BG_COLORS[color_index]
+            return f'https://api.dicebear.com/9.x/{style}/svg?seed={seed}&backgroundColor={bg}'
         return f'https://api.dicebear.com/9.x/{style}/svg?seed={seed}&backgroundColor=transparent'
 
     # Relacionamento com o histórico

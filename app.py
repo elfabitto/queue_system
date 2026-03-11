@@ -59,7 +59,7 @@ with app.app_context():
         is_postgres = 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']
         if is_postgres:
             db.session.execute(db.text(
-                "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS avatar_style VARCHAR(50) DEFAULT 'fun-emoji'"
+                "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS avatar_style VARCHAR(50) DEFAULT 'adventurer'"
             ))
             db.session.execute(db.text(
                 "ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS avatar_seed VARCHAR(100)"
@@ -80,7 +80,7 @@ with app.app_context():
             cols = [row[1] for row in result]
             if 'avatar_style' not in cols:
                 db.session.execute(db.text(
-                    "ALTER TABLE \"user\" ADD COLUMN avatar_style VARCHAR(50) DEFAULT 'fun-emoji'"
+                    "ALTER TABLE \"user\" ADD COLUMN avatar_style VARCHAR(50) DEFAULT 'adventurer'"
                 ))
             if 'avatar_seed' not in cols:
                 db.session.execute(db.text(
@@ -147,12 +147,20 @@ socketio = SocketIO(app)
 
 user_connections = {}
 
-# Injeta avatar_url do user atual em todos os templates
+# Injeta avatar_url do user atual e helper de cor neutral em todos os templates
 @app.context_processor
 def inject_user_avatar():
+    def neutral_bg_for(seed):
+        """Retorna a cor de fundo (hex sem #) para estilos Neutral, baseada no seed."""
+        colors = ['f5cba7', 'e3a87a', 'c68642', 'a0522d', '6b3a2a', 'ffd93d']
+        return colors[sum(ord(c) for c in str(seed)) % len(colors)]
+
+    ctx = {'neutral_bg_for': neutral_bg_for}
     if current_user.is_authenticated:
-        return {'current_avatar_url': current_user.avatar_url}
-    return {'current_avatar_url': None}
+        ctx['current_avatar_url'] = current_user.avatar_url
+    else:
+        ctx['current_avatar_url'] = None
+    return ctx
 
 @socketio.on('connect')
 def on_connect():
@@ -527,33 +535,39 @@ def export_xlsx():
 
 # ── ROTAS DE AVATAR ──
 AVATAR_STYLES = [
-    {'id': 'adventurer',        'label': 'Adventurer'},
-    {'id': 'adventurer-neutral','label': 'Adventurer Neutral'},
-    {'id': 'avataaars',         'label': 'Avataaars'},
-    {'id': 'avataaars-neutral', 'label': 'Avataaars Neutral'},
-    {'id': 'big-ears',          'label': 'Big Ears'},
-    {'id': 'big-ears-neutral',  'label': 'Big Ears Neutral'},
-    {'id': 'big-smile',         'label': 'Big Smile'},
-    {'id': 'bottts',            'label': 'Bottts'},
-    {'id': 'bottts-neutral',    'label': 'Bottts Neutral'},
-    {'id': 'croodles',          'label': 'Croodles'},
-    {'id': 'croodles-neutral',  'label': 'Croodles Neutral'},
-    {'id': 'dylan',             'label': 'Dylan'},
-    {'id': 'fun-emoji',         'label': 'Fun Emoji'},
-    {'id': 'initials',          'label': 'Initials'},
-    {'id': 'lorelei',           'label': 'Lorelei'},
-    {'id': 'lorelei-neutral',   'label': 'Lorelei Neutral'},
-    {'id': 'micah',             'label': 'Micah'},
-    {'id': 'miniavs',           'label': 'Miniavs'},
-    {'id': 'notionists',        'label': 'Notionists'},
-    {'id': 'notionists-neutral','label': 'Notionists Neutral'},
-    {'id': 'open-peeps',        'label': 'Open Peeps'},
-    {'id': 'personas',          'label': 'Personas'},
-    {'id': 'pixel-art',         'label': 'Pixel Art'},
-    {'id': 'pixel-art-neutral', 'label': 'Pixel Art Neutral'},
-    {'id': 'rings',             'label': 'Rings'},
-    {'id': 'toon-head',         'label': 'Toon Head'},
+    {'id': 'adventurer',         'label': 'Adventurer'},
+    {'id': 'adventurer-neutral', 'label': 'Adventurer Neutral'},
+    {'id': 'avataaars',          'label': 'Avataaars'},
+    {'id': 'avataaars-neutral',  'label': 'Avataaars Neutral'},
+    {'id': 'big-ears',           'label': 'Big Ears'},
+    {'id': 'big-ears-neutral',   'label': 'Big Ears Neutral'},
+    {'id': 'big-smile',          'label': 'Big Smile'},
+    {'id': 'bottts',             'label': 'Bottts'},
+    {'id': 'bottts-neutral',     'label': 'Bottts Neutral'},
+    {'id': 'croodles-neutral',   'label': 'Croodles Neutral'},
+    {'id': 'lorelei-neutral',    'label': 'Lorelei Neutral'},
+    {'id': 'micah',              'label': 'Micah'},
+    {'id': 'miniavs',            'label': 'Miniavs'},
+    {'id': 'notionists-neutral', 'label': 'Notionists Neutral'},
+    {'id': 'open-peeps',         'label': 'Open Peeps'},
+    {'id': 'personas',           'label': 'Personas'},
+    {'id': 'pixel-art',          'label': 'Pixel Art'},
+    {'id': 'pixel-art-neutral',  'label': 'Pixel Art Neutral'},
 ]
+
+# Paleta de cores de fundo para estilos Neutral (tons de pele + amarelo emoji)
+NEUTRAL_BG_COLORS = [
+    'f5cba7',  # bege claro
+    'e3a87a',  # tom de pele médio-claro
+    'c68642',  # tom de pele médio
+    'a0522d',  # tom de pele médio-escuro
+    '6b3a2a',  # tom de pele escuro
+    'ffd93d',  # amarelo emoji
+]
+
+def is_neutral_style(style_id):
+    """Verifica se um estilo é do tipo Neutral (requer cor de fundo)."""
+    return style_id.endswith('-neutral')
 
 AVATAR_SEEDS = [
     'Felix', 'Luna', 'Nala', 'Garfield', 'Bandit', 'Mochi',
@@ -564,7 +578,7 @@ AVATAR_SEEDS = [
 @login_required
 def profile_avatar():
     if request.method == 'POST':
-        style = request.form.get('avatar_style', 'fun-emoji')
+        style = request.form.get('avatar_style', 'adventurer')
         seed  = request.form.get('avatar_seed', current_user.username).strip()
         # Validar estilo
         valid_styles = [s['id'] for s in AVATAR_STYLES]
@@ -583,7 +597,7 @@ def profile_avatar():
     return render_template(
         'avatar.html',
         styles=AVATAR_STYLES,
-        current_style=current_user.avatar_style or 'fun-emoji',
+        current_style=current_user.avatar_style or 'adventurer',
         current_seed=current_user.avatar_seed or current_user.username,
     )
 
