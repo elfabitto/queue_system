@@ -71,6 +71,12 @@ with app.app_context():
                 "ALTER TABLE queue ADD COLUMN IF NOT EXISTS service_type VARCHAR(30)"
             ))
             db.session.execute(db.text(
+                "ALTER TABLE queue ADD COLUMN IF NOT EXISTS first_entered_at TIMESTAMP"
+            ))
+            db.session.execute(db.text(
+                "UPDATE queue SET first_entered_at = entered_at WHERE first_entered_at IS NULL"
+            ))
+            db.session.execute(db.text(
                 "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS service_type VARCHAR(30)"
             ))
         else:
@@ -97,6 +103,13 @@ with app.app_context():
                 db.session.execute(db.text(
                     "ALTER TABLE queue ADD COLUMN service_type VARCHAR(30)"
                 ))
+            if 'first_entered_at' not in cols_q:
+                db.session.execute(db.text(
+                    "ALTER TABLE queue ADD COLUMN first_entered_at TIMESTAMP"
+                ))
+                db.session.execute(db.text(
+                    "UPDATE queue SET first_entered_at = entered_at WHERE first_entered_at IS NULL"
+                ))
             # Tabela attendance
             result_a = db.session.execute(db.text("PRAGMA table_info(attendance)")).fetchall()
             cols_a = [row[1] for row in result_a]
@@ -111,7 +124,6 @@ with app.app_context():
 
     usuarios_iniciais = [
         {'username': 'Jarbas', 'is_admin': False},
-        {'username': 'Maiara', 'is_admin': False},
         {'username': 'Mariana', 'is_admin': False},
         {'username': 'Eliene', 'is_admin': False},
         {'username': 'Lorena', 'is_admin': True},
@@ -242,6 +254,19 @@ def leave_queue():
         db.session.commit()
         socketio.emit('update_queue')
     return redirect(url_for('index'))
+
+@app.route('/admin/remove_from_queue/<int:user_id>', methods=['POST'])
+@login_required
+def admin_remove_from_queue(user_id):
+    """Permite ao admin remover qualquer usuário da fila."""
+    if not current_user.is_admin:
+        return redirect(url_for('index'))
+    entry = Queue.query.filter_by(user_id=user_id).first()
+    if entry:
+        db.session.delete(entry)
+        db.session.commit()
+        socketio.emit('update_queue')
+    return redirect(url_for('admin'))
 
 # Mapeamento de tipos de atendimento
 SERVICE_TYPES = {

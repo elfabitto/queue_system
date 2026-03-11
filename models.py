@@ -38,7 +38,8 @@ class Queue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
     status = db.Column(db.String(20), default='Disponível') # Disponível, Analisando
-    entered_at = db.Column(db.DateTime, default=get_brt_time)
+    entered_at = db.Column(db.DateTime, default=get_brt_time)       # usado para ordenar (atualizado ao ciclar)
+    first_entered_at = db.Column(db.DateTime, default=get_brt_time) # horário real de entrada, nunca muda
     left_at = db.Column(db.DateTime, nullable=True)   # hora de saída da fila
     service_type = db.Column(db.String(30), nullable=True)  # tipo de atendimento em andamento
 

@@ -792,15 +792,27 @@
                 {% endif %}
               </div>
             </td>
-            <td class="queue-time">{{ entry.entered_at.strftime('%H:%M') if entry.entered_at else '-' }}</td>
+            <td class="queue-time">{{ entry.first_entered_at.strftime('%H:%M') if entry.first_entered_at else (entry.entered_at.strftime('%H:%M') if entry.entered_at else '-') }}</td>
             <td>
-              {% if loop.first and entry.status == 'Disponível' %}
-              <span class="badge badge-vez">Na vez</span>
-              {% elif entry.status == 'Analisando' %}
-              <span class="badge badge-analis">Analisando</span>
-              {% else %}
-              <span class="badge badge-aguard">Aguardando</span>
-              {% endif %}
+              <div style="display:flex; align-items:center; gap:0.4rem;">
+                {% if loop.first and entry.status == 'Disponível' %}
+                <span class="badge badge-vez">Na vez</span>
+                {% elif entry.status == 'Analisando' %}
+                <span class="badge badge-analis">Analisando</span>
+                {% else %}
+                <span class="badge badge-aguard">Aguardando</span>
+                {% endif %}
+                <form action="{{ url_for('admin_remove_from_queue', user_id=entry.user_id) }}" method="POST"
+                  onsubmit="return confirm('Remover {{ entry.user.username if entry.user else '' }} da fila?')"
+                  style="margin:0;">
+                  <button type="submit" title="Remover da fila"
+                    style="background:transparent; border:none; cursor:pointer; color:var(--muted);
+                           font-size:0.9rem; line-height:1; padding:0.1rem 0.25rem; border-radius:4px;
+                           transition:color 0.15s, background 0.15s;"
+                    onmouseover="this.style.color='var(--danger)'; this.style.background='var(--danger-dim)';"
+                    onmouseout="this.style.color='var(--muted)'; this.style.background='transparent';">✕</button>
+                </form>
+              </div>
             </td>
           </tr>
           {% endfor %}

@@ -57,9 +57,23 @@
     border: 1px solid rgba(5, 150, 105, 0.25);
   }
 
-  [data-theme="dark"] .badge-cns { color: #60a5fa; background: rgba(96,165,250,0.12); border-color: rgba(96,165,250,0.25); }
-  [data-theme="dark"] .badge-trt { color: #fbbf24; background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.25); }
-  [data-theme="dark"] .badge-cri { color: #34d399; background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.25); }
+  [data-theme="dark"] .badge-cns {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.12);
+    border-color: rgba(96, 165, 250, 0.25);
+  }
+
+  [data-theme="dark"] .badge-trt {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.12);
+    border-color: rgba(251, 191, 36, 0.25);
+  }
+
+  [data-theme="dark"] .badge-cri {
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.12);
+    border-color: rgba(52, 211, 153, 0.25);
+  }
 
   /* ── Hora de entrada na fila ── */
   .fila-hora {
@@ -153,13 +167,35 @@
     text-align: center;
   }
 
-  .type-opt-badge.cns { background: rgba(37,99,235,0.15); color: #2563eb; }
-  .type-opt-badge.trt { background: rgba(217,119,6,0.15); color: #d97706; }
-  .type-opt-badge.cri { background: rgba(5,150,105,0.15); color: #059669; }
+  .type-opt-badge.cns {
+    background: rgba(37, 99, 235, 0.15);
+    color: #2563eb;
+  }
 
-  [data-theme="dark"] .type-opt-badge.cns { background: rgba(96,165,250,0.15); color: #60a5fa; }
-  [data-theme="dark"] .type-opt-badge.trt { background: rgba(251,191,36,0.15); color: #fbbf24; }
-  [data-theme="dark"] .type-opt-badge.cri { background: rgba(52,211,153,0.15); color: #34d399; }
+  .type-opt-badge.trt {
+    background: rgba(217, 119, 6, 0.15);
+    color: #d97706;
+  }
+
+  .type-opt-badge.cri {
+    background: rgba(5, 150, 105, 0.15);
+    color: #059669;
+  }
+
+  [data-theme="dark"] .type-opt-badge.cns {
+    background: rgba(96, 165, 250, 0.15);
+    color: #60a5fa;
+  }
+
+  [data-theme="dark"] .type-opt-badge.trt {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+  }
+
+  [data-theme="dark"] .type-opt-badge.cri {
+    background: rgba(52, 211, 153, 0.15);
+    color: #34d399;
+  }
 
   .type-opt-label {
     font-size: 0.84rem;
@@ -314,9 +350,7 @@
       <div class="fila-pos">{{ loop.index }}</div>
 
       <!-- Avatar miniatura -->
-      <img
-        src="{{ entry.user.avatar_url }}"
-        alt="avatar"
+      <img src="{{ entry.user.avatar_url }}" alt="avatar"
         style="width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--accent);flex-shrink:0;">
 
       <div class="fila-info">
@@ -325,16 +359,16 @@
           {% if entry.user_id == current_user.id %}(Você){% endif %}
           <!-- Badge de tipo de atendimento -->
           {% if entry.status == 'Analisando' and entry.service_type %}
-            {% if entry.service_type == 'Consulta' %}
-              <span class="badge-type badge-cns">CNS</span>
-            {% elif entry.service_type == 'Troca de Titularidade' %}
-              <span class="badge-type badge-trt">TRT</span>
-            {% elif entry.service_type == 'Criação de Matrícula' %}
-              <span class="badge-type badge-cri">CRI</span>
-            {% endif %}
+          {% if entry.service_type == 'Consulta' %}
+          <span class="badge-type badge-cns">CNS</span>
+          {% elif entry.service_type == 'Troca de Titularidade' %}
+          <span class="badge-type badge-trt">TRT</span>
+          {% elif entry.service_type == 'Criação de Matrícula' %}
+          <span class="badge-type badge-cri">CRI</span>
+          {% endif %}
           {% endif %}
         </div>
-        <div class="fila-hora">⏱ {{ entry.entered_at.strftime('%H:%M') if entry.entered_at else '' }}</div>
+        <div class="fila-hora">⏱ {{ entry.first_entered_at.strftime('%H:%M') if entry.first_entered_at else (entry.entered_at.strftime('%H:%M') if entry.entered_at else '') }}</div>
         <div class="fila-status
             {% if entry.status == 'Disponível' and loop.first %}green{% endif %}
             {% if entry.status == 'Analisando' %}yellow{% endif %}">
@@ -429,10 +463,10 @@
   }
 
   // ── Modal de tipo de atendimento ──
-  const modal        = document.getElementById('modal-tipo');
-  const btnAbrir     = document.getElementById('btn-abrir-modal');
-  const btnCancelar  = document.getElementById('btn-modal-cancel');
-  const inputType    = document.getElementById('input-service-type');
+  const modal = document.getElementById('modal-tipo');
+  const btnAbrir = document.getElementById('btn-abrir-modal');
+  const btnCancelar = document.getElementById('btn-modal-cancel');
+  const inputType = document.getElementById('input-service-type');
 
   if (btnAbrir) {
     btnAbrir.addEventListener('click', () => {
