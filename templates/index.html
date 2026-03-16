@@ -440,17 +440,17 @@
       if (audio) audio.play().catch(() => { });
 
       if (Notification.permission === "granted") {
-        var n = new Notification("Sua Vez!", {
+        var n = new Notification("{{ current_user.username }}, sua vez!!", {
           body: "É a sua vez na fila. Inicie sua tarefa.",
-          icon: "https://cdn-icons-png.flaticon.com/512/1827/1827347.png"
+          icon: "{{ current_user.avatar_url }}"
         });
         n.onclick = () => window.focus();
       } else if (Notification.permission !== "denied") {
         Notification.requestPermission().then(p => {
           if (p === "granted") {
-            var n = new Notification("Sua Vez!", {
+            var n = new Notification("{{ current_user.username }}, sua vez!!", {
               body: "É a sua vez na fila. Inicie sua tarefa.",
-              icon: "https://cdn-icons-png.flaticon.com/512/1827/1827347.png"
+              icon: "{{ current_user.avatar_url }}"
             });
             n.onclick = () => window.focus();
           }
