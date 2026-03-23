@@ -245,6 +245,93 @@
   .btn-modal-confirm:hover {
     opacity: 0.88;
   }
+  /* ── Textarea nos modais ── */
+  .modal-textarea {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 0;
+    box-sizing: border-box;
+  }
+
+  .modal-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .modal-textarea::placeholder {
+    color: var(--muted);
+  }
+
+  .modal-field {
+    margin-bottom: 0.9rem;
+  }
+
+  .modal-field-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.35rem;
+    display: block;
+  }
+
+  .modal-field-label .obrig {
+    color: var(--danger);
+    margin-left: 2px;
+  }
+
+  .modal-input-text {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 0;
+    box-sizing: border-box;
+  }
+
+  .modal-input-text:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .modal-input-text::placeholder {
+    color: var(--muted);
+  }
+
+  .btn-modal-skip {
+    padding: 0.5rem 1.25rem;
+    background: var(--warning, #d97706);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 2px 8px rgba(217,119,6,0.3);
+  }
+
+  .btn-modal-skip:hover {
+    opacity: 0.88;
+  }
 </style>
 {% endblock %}
 
@@ -273,9 +360,7 @@
     <div class="btn-row">
       <!-- Abre o modal em vez de enviar diretamente -->
       <button type="button" class="btn-green" id="btn-abrir-modal">INICIAR</button>
-      <form action="{{ url_for('skip_task') }}" method="POST">
-        <button type="submit" class="btn-skip">PULAR</button>
-      </form>
+      <button type="button" class="btn-skip" id="btn-abrir-modal-pulo">PULAR</button>
     </div>
   </div>
 
@@ -327,9 +412,8 @@
       <div style="font-size:0.78rem; color:var(--muted); margin-top:0.25rem;">Você está analisando uma demanda.</div>
       {% endif %}
     </div>
-    <form action="{{ url_for('finish_task') }}" method="POST">
-      <button type="submit" class="btn-yellow">FINALIZAR</button>
-    </form>
+    <button type="button" class="btn-yellow" id="btn-abrir-modal-finalizar"
+      data-service="{{ user_entry.service_type or '' }}">FINALIZAR</button>
   </div>
   {% endif %}
 
@@ -422,6 +506,51 @@
   </div>
 </div>
 
+<!-- MODAL DE PULO (justificativa obrigatória) -->
+<div class="modal-overlay" id="modal-pulo">
+  <div class="modal-box">
+    <div class="modal-title">Pular atendimento</div>
+    <div class="modal-subtitle">Por que você está pulando?</div>
+    <form action="{{ url_for('skip_task') }}" method="POST" id="form-skip-task" style="margin:0;">
+      <div class="modal-field">
+        <label class="modal-field-label" for="obs-pulo">Justificativa <span class="obrig">*</span></label>
+        <textarea class="modal-textarea" id="obs-pulo" name="observacao"
+          placeholder="Descreva o motivo de pular..." required></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-cancel" id="btn-cancel-pulo">CANCELAR</button>
+        <button type="submit" class="btn-modal-skip">PULAR</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE FINALIZAÇÃO -->
+<div class="modal-overlay" id="modal-finalizar">
+  <div class="modal-box" style="width:min(90vw,420px);">
+    <div class="modal-title">Finalizar atendimento</div>
+    <div class="modal-subtitle" id="modal-fin-subtitle">Adicione observações se necessário</div>
+    <form action="{{ url_for('finish_task') }}" method="POST" id="form-finish-task" style="margin:0;">
+      <!-- Campo matrícula: visível só para TRT e CRI -->
+      <div class="modal-field" id="campo-matricula" style="display:none;">
+        <label class="modal-field-label" for="fin-matricula">Matrícula atendida <span style="color:var(--muted);font-weight:400;">(opcional)</span></label>
+        <input class="modal-input-text" type="text" id="fin-matricula" name="matricula"
+          placeholder="Nº da matrícula...">
+      </div>
+      <!-- Campo observação: sempre visível -->
+      <div class="modal-field">
+        <label class="modal-field-label" for="fin-obs">Observação <span style="color:var(--muted);font-weight:400;">(opcional)</span></label>
+        <textarea class="modal-textarea" id="fin-obs" name="observacao"
+          placeholder="Alguma observação sobre este atendimento..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-cancel" id="btn-cancel-finalizar">CANCELAR</button>
+        <button type="submit" class="btn-modal-confirm">FINALIZAR</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -480,14 +609,12 @@
     });
   }
 
-  // Fechar ao clicar fora do box
   if (modal) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.remove('open');
     });
   }
 
-  // Seleção das opções de tipo
   document.querySelectorAll('.type-opt').forEach(opt => {
     opt.addEventListener('click', () => {
       document.querySelectorAll('.type-opt').forEach(o => o.classList.remove('selected'));
@@ -495,5 +622,57 @@
       inputType.value = opt.dataset.type;
     });
   });
+
+  // ── Modal de PULO (justificativa obrigatória) ──
+  const modalPulo    = document.getElementById('modal-pulo');
+  const btnAbrirPulo = document.getElementById('btn-abrir-modal-pulo');
+  const btnCancelPulo= document.getElementById('btn-cancel-pulo');
+
+  if (btnAbrirPulo) {
+    btnAbrirPulo.addEventListener('click', () => {
+      document.getElementById('obs-pulo').value = '';
+      modalPulo.classList.add('open');
+    });
+  }
+  if (btnCancelPulo) {
+    btnCancelPulo.addEventListener('click', () => modalPulo.classList.remove('open'));
+  }
+  if (modalPulo) {
+    modalPulo.addEventListener('click', (e) => {
+      if (e.target === modalPulo) modalPulo.classList.remove('open');
+    });
+  }
+
+  // ── Modal de FINALIZAÇÃO (observação + matrícula condicional) ──
+  const modalFin      = document.getElementById('modal-finalizar');
+  const btnAbrirFin   = document.getElementById('btn-abrir-modal-finalizar');
+  const btnCancelFin  = document.getElementById('btn-cancel-finalizar');
+  const campoMatricula= document.getElementById('campo-matricula');
+
+  const TIPOS_COM_MATRICULA = ['Troca de Titularidade', 'Criação de Matrícula'];
+
+  if (btnAbrirFin) {
+    btnAbrirFin.addEventListener('click', () => {
+      const serviceType = btnAbrirFin.dataset.service || '';
+      // Limpar campos
+      document.getElementById('fin-obs').value = '';
+      document.getElementById('fin-matricula').value = '';
+      // Mostrar campo matrícula só para TRT e CRI
+      if (TIPOS_COM_MATRICULA.includes(serviceType)) {
+        campoMatricula.style.display = 'block';
+      } else {
+        campoMatricula.style.display = 'none';
+      }
+      modalFin.classList.add('open');
+    });
+  }
+  if (btnCancelFin) {
+    btnCancelFin.addEventListener('click', () => modalFin.classList.remove('open'));
+  }
+  if (modalFin) {
+    modalFin.addEventListener('click', (e) => {
+      if (e.target === modalFin) modalFin.classList.remove('open');
+    });
+  }
 </script>
 {% endblock %}

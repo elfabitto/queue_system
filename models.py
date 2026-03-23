@@ -52,10 +52,13 @@ class Attendance(db.Model):
     started_at = db.Column(db.DateTime, default=get_brt_time)
     finished_at = db.Column(db.DateTime, nullable=True)
     duration_seconds = db.Column(db.Integer, nullable=True)
+    observacao = db.Column(db.Text, nullable=True)          # Observação opcional ao finalizar
+    matricula = db.Column(db.String(50), nullable=True)     # Matrícula atendida (TRT/CRI)
 
 class Skip(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     skipped_at = db.Column(db.DateTime, default=get_brt_time)
-    
+    observacao = db.Column(db.Text, nullable=True)          # Justificativa obrigatória do pulo
+
     user = db.relationship('User', backref=db.backref('skips', lazy=True))

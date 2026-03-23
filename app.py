@@ -79,6 +79,15 @@ with app.app_context():
             db.session.execute(db.text(
                 "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS service_type VARCHAR(30)"
             ))
+            db.session.execute(db.text(
+                "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS observacao TEXT"
+            ))
+            db.session.execute(db.text(
+                "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS matricula VARCHAR(50)"
+            ))
+            db.session.execute(db.text(
+                "ALTER TABLE skip ADD COLUMN IF NOT EXISTS observacao TEXT"
+            ))
         else:
             # SQLite: verificar via PRAGMA antes de alterar
             # Tabela user
@@ -116,6 +125,21 @@ with app.app_context():
             if 'service_type' not in cols_a:
                 db.session.execute(db.text(
                     "ALTER TABLE attendance ADD COLUMN service_type VARCHAR(30)"
+                ))
+            if 'observacao' not in cols_a:
+                db.session.execute(db.text(
+                    "ALTER TABLE attendance ADD COLUMN observacao TEXT"
+                ))
+            if 'matricula' not in cols_a:
+                db.session.execute(db.text(
+                    "ALTER TABLE attendance ADD COLUMN matricula VARCHAR(50)"
+                ))
+            # Tabela skip
+            result_s = db.session.execute(db.text("PRAGMA table_info(skip)")).fetchall()
+            cols_s = [row[1] for row in result_s]
+            if 'observacao' not in cols_s:
+                db.session.execute(db.text(
+                    "ALTER TABLE skip ADD COLUMN observacao TEXT"
                 ))
         db.session.commit()
     except Exception as e:
@@ -300,12 +324,16 @@ def start_task():
 def finish_task():
     entry = Queue.query.filter_by(user_id=current_user.id).first()
     if entry and entry.status == 'Analisando':
+        observacao = request.form.get('observacao', '').strip() or None
+        matricula  = request.form.get('matricula', '').strip() or None
         # Atualizar atendimento
         attendance = Attendance.query.filter_by(user_id=current_user.id, finished_at=None).order_by(Attendance.started_at.desc()).first()
         if attendance:
             attendance.finished_at = get_brt_time()
             delta = attendance.finished_at - attendance.started_at
             attendance.duration_seconds = int(delta.total_seconds())
+            attendance.observacao = observacao
+            attendance.matricula  = matricula
         
         # Voltar para o fim da fila
         entry.status = 'Disponível'
@@ -320,8 +348,9 @@ def finish_task():
 def skip_task():
     entry = Queue.query.filter_by(user_id=current_user.id).first()
     if entry and entry.status == 'Disponível':
+        observacao = request.form.get('observacao', '').strip() or None
         # Registrar o pulo no banco de dados
-        skip = Skip(user_id=current_user.id)
+        skip = Skip(user_id=current_user.id, observacao=observacao)
         db.session.add(skip)
         
         # Mover para o fim da fila sem registrar atendimento
@@ -404,6 +433,8 @@ def admin():
             'duracao': format_duration(r.duration_seconds),
             'inicio': inicio_str,
             'service_type': r.service_type or '',
+            'observacao': r.observacao or '',
+            'matricula': r.matricula or '',
         })
     
     stats = []
@@ -451,14 +482,18 @@ def view_colaborador(user_id):
             'tipo': 'Concluído',
             'data': a.finished_at,
             'duracao': format_duration(a.duration_seconds),
-            'service_type': a.service_type or ''
+            'service_type': a.service_type or '',
+            'observacao': a.observacao or '',
+            'matricula': a.matricula or '',
         })
     for s in skips:
         history.append({
             'tipo': 'Pulado',
             'data': s.skipped_at,
             'duracao': "-",
-            'service_type': ''
+            'service_type': '',
+            'observacao': s.observacao or '',
+            'matricula': '',
         })
         
     history.sort(key=lambda x: x['data'], reverse=True)
@@ -519,7 +554,9 @@ def export_xlsx():
             'colaborador': a.colaborador.username if a.colaborador else 'Desconhecido',
             'service_type': a.service_type or '',
             'acao': 'Concluído',
-            'duracao_segundos': a.duration_seconds or 0
+            'duracao_segundos': a.duration_seconds or 0,
+            'observacao': a.observacao or '',
+            'matricula': a.matricula or '',
         })
         
     for s in skips:
@@ -528,7 +565,9 @@ def export_xlsx():
             'colaborador': s.user.username if s.user else 'Desconhecido',
             'service_type': '',
             'acao': 'Pulado',
-            'duracao_segundos': 0
+            'duracao_segundos': 0,
+            'observacao': s.observacao or '',
+            'matricula': '',
         })
         
     records.sort(key=lambda x: x['data'], reverse=True)
@@ -537,7 +576,7 @@ def export_xlsx():
     wb = Workbook()
     ws = wb.active
     ws.title = "Relatório"
-    ws.append(['Data/Hora', 'Colaborador', 'Tipo de Atendimento', 'Ação', 'Tempo de Atendimento (Segundos)', 'Tempo de Atendimento (Formatado)'])
+    ws.append(['Data/Hora', 'Colaborador', 'Tipo de Atendimento', 'Ação', 'Matrícula', 'Observação', 'Tempo de Atendimento (Segundos)', 'Tempo de Atendimento (Formatado)'])
     
     for r in records:
         ws.append([
@@ -545,6 +584,8 @@ def export_xlsx():
             r['colaborador'],
             r.get('service_type', ''),
             r['acao'],
+            r.get('matricula', ''),
+            r.get('observacao', ''),
             r['duracao_segundos'],
             format_duration(r['duracao_segundos'])
         ])

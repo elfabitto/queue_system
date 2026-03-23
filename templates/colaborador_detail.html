@@ -312,13 +312,15 @@
                         <th>Data e Hora</th>
                         <th>Ação</th>
                         <th>Tipo</th>
+                        <th>Matrícula</th>
                         <th>Duração</th>
+                        <th>Observação</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if not history %}
                     <tr>
-                        <td colspan="4" class="empty-state">Nenhuma atividade registrada</td>
+                        <td colspan="6" class="empty-state">Nenhuma atividade registrada</td>
                     </tr>
                     {% else %}
                     {% for record in history %}
@@ -342,9 +344,19 @@
                             <span style="color:var(--muted);font-size:0.7rem;">—</span>
                             {% endif %}
                         </td>
+                        <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text-mid);">
+                            {{ record.matricula if record.matricula else '—' }}
+                        </td>
                         <td>
                             {% if record.duracao != '-' %}
                             <span class="hist-duracao">{{ record.duracao }}</span>
+                            {% else %}
+                            <span style="color:var(--muted);">—</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:0.75rem;color:var(--text-mid);max-width:220px;">
+                            {% if record.observacao %}
+                            <span title="{{ record.observacao }}">{{ record.observacao[:70] }}{% if record.observacao|length > 70 %}…{% endif %}</span>
                             {% else %}
                             <span style="color:var(--muted);">—</span>
                             {% endif %}
