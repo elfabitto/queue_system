@@ -745,13 +745,16 @@
   </div>
   {% endif %}
 
-  <!-- FILA + HISTÓRICO -->
-  <div class="two-col">
+  <!-- FILA PRINCIPAL + FILA SECUNDÁRIA + HISTÓRICO -->
+  <p class="section-title">Filas em tempo real</p>
+  <div class="two-col" style="grid-template-columns: 1fr 1fr; margin-bottom: 1rem;">
 
-    <!-- Fila Atual -->
+    <!-- Fila Principal -->
     <div class="card-panel" style="margin-bottom: 0;">
-      <div class="panel-head">
-        <p class="section-title" style="margin-bottom: 0;">Fila atual</p>
+      <div class="panel-head" style="display:flex;align-items:center;gap:0.55rem;">
+        <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>
+        <p class="section-title" style="margin-bottom: 0;">Fila Principal</p>
+        <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);margin-left:auto;">{{ queue_principal|length }} pessoa{% if queue_principal|length != 1 %}s{% endif %}</span>
       </div>
       <table class="admin-table">
         <thead>
@@ -763,12 +766,12 @@
           </tr>
         </thead>
         <tbody>
-          {% if not queue %}
+          {% if not queue_principal %}
           <tr>
             <td colspan="4" class="empty-state">Ninguém na fila</td>
           </tr>
           {% else %}
-          {% for entry in queue %}
+          {% for entry in queue_principal %}
           <tr>
             <td class="queue-pos">{{ loop.index }}</td>
             <td>
@@ -780,7 +783,6 @@
                   style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--accent);flex-shrink:0;">
                 {% endif %}
                 <span style="font-weight:500;">{{ entry.user.username if entry.user else 'Desconhecido' }}</span>
-                <!-- Badge tipo de atendimento -->
                 {% if entry.status == 'Analisando' and entry.service_type %}
                 {% if entry.service_type == 'Consulta' %}
                 <span class="badge-type badge-cns">CNS</span>
@@ -821,63 +823,135 @@
       </table>
     </div>
 
-    <!-- Histórico -->
-    <div class="card-panel" style="margin-bottom: 0; padding: 0; display: flex; flex-direction: column;">
-      <div class="panel-head">
-        <p class="section-title" style="margin-bottom: 0;">Últimos atendimentos</p>
+    <!-- Fila Secundária -->
+    <div class="card-panel" style="margin-bottom: 0;">
+      <div class="panel-head" style="display:flex;align-items:center;gap:0.55rem;">
+        <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--success);flex-shrink:0;"></span>
+        <p class="section-title" style="margin-bottom: 0;">Fila Secundária</p>
+        <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);margin-left:auto;">{{ queue_secundaria|length }} pessoa{% if queue_secundaria|length != 1 %}s{% endif %}</span>
       </div>
-      <div class="history-scroll" style="flex: 1;">
-        <table class="hist-table">
-          <thead>
-            <tr>
-              <th>Colaborador</th>
-              <th>Tipo</th>
-              <th>Matrícula</th>
-              <th>Início</th>
-              <th>Duração</th>
-              <th>Observação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if not history %}
-            <tr>
-              <td colspan="6" class="empty-state">Nenhum atendimento</td>
-            </tr>
-            {% else %}
-            {% for record in history %}
-            <tr>
-              <td class="hist-name">{{ record.colaborador.username }}</td>
-              <td>
-                {% if record.service_type == 'Consulta' %}
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome</th>
+            <th>Entrada</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if not queue_secundaria %}
+          <tr>
+            <td colspan="4" class="empty-state">Ninguém na fila</td>
+          </tr>
+          {% else %}
+          {% for entry in queue_secundaria %}
+          <tr>
+            <td class="queue-pos">{{ loop.index }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                {% if entry.user %}
+                <img
+                  src="{{ entry.user.avatar_url }}"
+                  alt="avatar"
+                  style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--success);flex-shrink:0;">
+                {% endif %}
+                <span style="font-weight:500;">{{ entry.user.username if entry.user else 'Desconhecido' }}</span>
+                {% if entry.status == 'Analisando' and entry.service_type %}
+                {% if entry.service_type == 'Consulta' %}
                 <span class="badge-type badge-cns">CNS</span>
-                {% elif record.service_type == 'Troca de Titularidade' %}
+                {% elif entry.service_type == 'Troca de Titularidade' %}
                 <span class="badge-type badge-trt">TRT</span>
-                {% elif record.service_type == 'Criação de Matrícula' %}
+                {% elif entry.service_type == 'Criação de Matrícula' %}
                 <span class="badge-type badge-cri">CRI</span>
-                {% else %}
-                <span style="color:var(--muted);font-size:0.7rem;">—</span>
                 {% endif %}
-              </td>
-              <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text-mid);">
-                {{ record.matricula or '—' }}
-              </td>
-              <td class="hist-inicio">{{ record.inicio }}</td>
-              <td class="hist-duracao">{{ record.duracao }}</td>
-              <td style="font-size:0.75rem;color:var(--text-mid);max-width:200px;">
-                {% if record.observacao %}
-                <span title="{{ record.observacao }}">{{ record.observacao[:60] }}{% if record.observacao|length > 60 %}…{% endif %}</span>
-                {% else %}
-                <span style="color:var(--muted)">—</span>
                 {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-            {% endif %}
-          </tbody>
-        </table>
-      </div>
+              </div>
+            </td>
+            <td class="queue-time">{{ entry.first_entered_at.strftime('%H:%M') if entry.first_entered_at else (entry.entered_at.strftime('%H:%M') if entry.entered_at else '-') }}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.4rem;">
+                {% if loop.first and entry.status == 'Disponível' %}
+                <span class="badge badge-vez">Na vez</span>
+                {% elif entry.status == 'Analisando' %}
+                <span class="badge badge-analis">Analisando</span>
+                {% else %}
+                <span class="badge badge-aguard">Aguardando</span>
+                {% endif %}
+                <form action="{{ url_for('admin_remove_from_queue', user_id=entry.user_id) }}" method="POST"
+                  onsubmit="return confirm('Remover {{ entry.user.username if entry.user else '' }} da fila?')"
+                  style="margin:0;">
+                  <button type="submit" title="Remover da fila"
+                    style="background:transparent; border:none; cursor:pointer; color:var(--muted);
+                           font-size:0.9rem; line-height:1; padding:0.1rem 0.25rem; border-radius:4px;
+                           transition:color 0.15s, background 0.15s;"
+                    onmouseover="this.style.color='var(--danger)'; this.style.background='var(--danger-dim)';"
+                    onmouseout="this.style.color='var(--muted)'; this.style.background='transparent';">✕</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
     </div>
 
+  </div>
+
+  <!-- Histórico -->
+  <p class="section-title">Últimos atendimentos</p>
+  <div class="card-panel" style="margin-bottom: 2rem; padding: 0;">
+    <div class="history-scroll">
+      <table class="hist-table">
+        <thead>
+          <tr>
+            <th>Colaborador</th>
+            <th>Tipo</th>
+            <th>Matrícula</th>
+            <th>Início</th>
+            <th>Duração</th>
+            <th>Observação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if not history %}
+          <tr>
+            <td colspan="6" class="empty-state">Nenhum atendimento</td>
+          </tr>
+          {% else %}
+          {% for record in history %}
+          <tr>
+            <td class="hist-name">{{ record.colaborador.username }}</td>
+            <td>
+              {% if record.service_type == 'Consulta' %}
+              <span class="badge-type badge-cns">CNS</span>
+              {% elif record.service_type == 'Troca de Titularidade' %}
+              <span class="badge-type badge-trt">TRT</span>
+              {% elif record.service_type == 'Criação de Matrícula' %}
+              <span class="badge-type badge-cri">CRI</span>
+              {% else %}
+              <span style="color:var(--muted);font-size:0.7rem;">—</span>
+              {% endif %}
+            </td>
+            <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text-mid);">
+              {{ record.matricula or '—' }}
+            </td>
+            <td class="hist-inicio">{{ record.inicio }}</td>
+            <td class="hist-duracao">{{ record.duracao }}</td>
+            <td style="font-size:0.75rem;color:var(--text-mid);max-width:200px;">
+              {% if record.observacao %}
+              <span title="{{ record.observacao }}">{{ record.observacao[:60] }}{% if record.observacao|length > 60 %}…{% endif %}</span>
+              {% else %}
+              <span style="color:var(--muted)">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- COLABORADORES -->

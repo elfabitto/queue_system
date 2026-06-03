@@ -83,6 +83,134 @@
     margin-top: 2px;
   }
 
+  /* ── Seleção de fila ── */
+  .queue-select-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem 1.5rem;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .queue-select-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+
+  .queue-select-subtitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+
+  .queue-choice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+
+  .queue-choice-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 1.1rem 0.75rem;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .queue-choice-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .queue-choice-btn.principal {
+    border-color: rgba(124, 58, 237, 0.3);
+  }
+
+  .queue-choice-btn.principal:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .queue-choice-btn.secundaria {
+    border-color: rgba(5, 150, 105, 0.3);
+  }
+
+  .queue-choice-btn.secundaria:hover {
+    border-color: var(--success);
+    background: rgba(5, 150, 105, 0.08);
+  }
+
+  .queue-choice-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+  }
+
+  .queue-choice-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .queue-choice-btn.principal .queue-choice-label { color: var(--accent); }
+  .queue-choice-btn.secundaria .queue-choice-label { color: var(--success); }
+
+  .queue-choice-desc {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  /* ── Banner de nome da fila ── */
+  .queue-name-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 0.9rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .queue-name-banner.principal {
+    background: var(--accent-dim);
+    border: 1px solid rgba(124, 58, 237, 0.22);
+    color: var(--accent);
+  }
+
+  .queue-name-banner.secundaria {
+    background: rgba(5, 150, 105, 0.1);
+    border: 1px solid rgba(5, 150, 105, 0.25);
+    color: var(--success);
+  }
+
+  .queue-name-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .principal .queue-name-dot { background: var(--accent); }
+  .secundaria .queue-name-dot { background: var(--success); }
+
   /* ── Modal de tipo de atendimento ── */
   .modal-overlay {
     display: none;
@@ -340,11 +468,27 @@
 
   <!-- CASO 1: USUÁRIO NÃO ESTÁ NA FILA -->
   {% if not user_entry %}
-  <div class="fora-card">
-    <p>Você não está na fila no momento.</p>
-    <form action="{{ url_for('join_queue') }}" method="POST">
-      <button type="submit" class="btn-entrar">ENTRAR NA FILA</button>
-    </form>
+  <div class="queue-select-card">
+    <div class="queue-select-title">Selecione a fila</div>
+    <div class="queue-select-subtitle">Em qual fila deseja entrar?</div>
+    <div class="queue-choice-grid">
+      <form action="{{ url_for('join_queue') }}" method="POST" style="margin:0;">
+        <input type="hidden" name="queue_name" value="Principal">
+        <button type="submit" class="queue-choice-btn principal" style="width:100%;">
+          <span class="queue-choice-icon">🟣</span>
+          <span class="queue-choice-label">Principal</span>
+          <span class="queue-choice-desc">Fila padrão</span>
+        </button>
+      </form>
+      <form action="{{ url_for('join_queue') }}" method="POST" style="margin:0;">
+        <input type="hidden" name="queue_name" value="Secundária">
+        <button type="submit" class="queue-choice-btn secundaria" style="width:100%;">
+          <span class="queue-choice-icon">🟢</span>
+          <span class="queue-choice-label">Secundária</span>
+          <span class="queue-choice-desc">Fila alternativa</span>
+        </button>
+      </form>
+    </div>
   </div>
   {% endif %}
 
@@ -414,6 +558,14 @@
     </div>
     <button type="button" class="btn-yellow" id="btn-abrir-modal-finalizar"
       data-service="{{ user_entry.service_type or '' }}">FINALIZAR</button>
+  </div>
+  {% endif %}
+
+  <!-- BANNER COM NOME DA FILA -->
+  {% if current_queue_name %}
+  <div class="queue-name-banner {{ 'principal' if current_queue_name == 'Principal' else 'secundaria' }}">
+    <div class="queue-name-dot"></div>
+    Fila {{ current_queue_name }}
   </div>
   {% endif %}
 

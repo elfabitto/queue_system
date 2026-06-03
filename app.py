@@ -3,7 +3,7 @@
 import eventlet
 eventlet.monkey_patch()
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, emit
 from models import db, User, Queue, Attendance, Skip, get_brt_time
@@ -13,6 +13,8 @@ import os
 import csv
 import io
 from openpyxl import Workbook
+
+QUEUE_NAMES = ['Principal', 'Secundária']
 
 def format_duration(seconds):
     if not seconds:
@@ -77,6 +79,12 @@ with app.app_context():
                 "UPDATE queue SET first_entered_at = entered_at WHERE first_entered_at IS NULL"
             ))
             db.session.execute(db.text(
+                "ALTER TABLE queue ADD COLUMN IF NOT EXISTS queue_name VARCHAR(30) DEFAULT 'Principal'"
+            ))
+            db.session.execute(db.text(
+                "UPDATE queue SET queue_name = 'Principal' WHERE queue_name IS NULL"
+            ))
+            db.session.execute(db.text(
                 "ALTER TABLE attendance ADD COLUMN IF NOT EXISTS service_type VARCHAR(30)"
             ))
             db.session.execute(db.text(
@@ -118,6 +126,13 @@ with app.app_context():
                 ))
                 db.session.execute(db.text(
                     "UPDATE queue SET first_entered_at = entered_at WHERE first_entered_at IS NULL"
+                ))
+            if 'queue_name' not in cols_q:
+                db.session.execute(db.text(
+                    "ALTER TABLE queue ADD COLUMN queue_name VARCHAR(30) DEFAULT 'Principal'"
+                ))
+                db.session.execute(db.text(
+                    "UPDATE queue SET queue_name = 'Principal' WHERE queue_name IS NULL"
                 ))
             # Tabela attendance
             result_a = db.session.execute(db.text("PRAGMA table_info(attendance)")).fetchall()
@@ -245,23 +260,44 @@ def index():
     if current_user.is_admin:
         return redirect(url_for('admin'))
     
-    # Pegar a fila completa ordenada por tempo de entrada
-    queue_list = Queue.query.order_by(Queue.entered_at.asc()).all()
-    
-    # Verificar se o usuário está na fila
+    # Verificar se o usuário está em alguma fila
     user_entry = Queue.query.filter_by(user_id=current_user.id).first()
     
-    # Quem está na vez? O primeiro da fila que não está "Analisando" ou o primeiro de todos?
-    # Segundo o requisito: "O próximo disponível já fica na vez"
-    current_turn_entry = Queue.query.filter_by(status='Disponível').order_by(Queue.entered_at.asc()).first()
+    # Determinar qual fila exibir:
+    # - Se o usuário está em uma fila, mostrar a fila dele
+    # - Caso contrário, usar a fila salva na sessão (ou nenhuma)
+    if user_entry:
+        current_queue_name = user_entry.queue_name
+        session['current_queue_name'] = current_queue_name
+    else:
+        current_queue_name = session.get('current_queue_name', None)
     
-    return render_template('index.html', queue=queue_list, user_entry=user_entry, turn_user=current_turn_entry)
+    if current_queue_name:
+        # Filtrar a fila pelo nome selecionado
+        queue_list = Queue.query.filter_by(queue_name=current_queue_name).order_by(Queue.entered_at.asc()).all()
+        current_turn_entry = Queue.query.filter_by(
+            status='Disponível', queue_name=current_queue_name
+        ).order_by(Queue.entered_at.asc()).first()
+    else:
+        queue_list = []
+        current_turn_entry = None
+    
+    return render_template('index.html',
+                           queue=queue_list,
+                           user_entry=user_entry,
+                           turn_user=current_turn_entry,
+                           current_queue_name=current_queue_name,
+                           queue_names=QUEUE_NAMES)
 
 @app.route('/join_queue', methods=['POST'])
 @login_required
 def join_queue():
     if not Queue.query.filter_by(user_id=current_user.id).first():
-        new_entry = Queue(user_id=current_user.id)
+        queue_name = request.form.get('queue_name', 'Principal')
+        if queue_name not in QUEUE_NAMES:
+            queue_name = 'Principal'
+        new_entry = Queue(user_id=current_user.id, queue_name=queue_name)
+        session['current_queue_name'] = queue_name
         db.session.add(new_entry)
         db.session.commit()
         socketio.emit('update_queue')
@@ -276,6 +312,7 @@ def leave_queue():
         db.session.commit()
         db.session.delete(entry)
         db.session.commit()
+        session.pop('current_queue_name', None)
         socketio.emit('update_queue')
     return redirect(url_for('index'))
 
@@ -445,10 +482,15 @@ def admin():
             stats.append({'id': user.id, 'username': user.username, 'count': count, 'skip_count': skip_count})
     
     daily_stats = get_daily_stats()
-    queue_list = Queue.query.order_by(Queue.entered_at.asc()).all()
+    # Buscar as duas filas separadamente para o painel admin
+    queue_principal = Queue.query.filter_by(queue_name='Principal').order_by(Queue.entered_at.asc()).all()
+    queue_secundaria = Queue.query.filter_by(queue_name='Secundária').order_by(Queue.entered_at.asc()).all()
         
     return render_template('admin.html', stats=stats, history=history, all_users=all_users,
-                           daily_stats=daily_stats, queue=queue_list, service_types=SERVICE_TYPES)
+                           daily_stats=daily_stats,
+                           queue_principal=queue_principal,
+                           queue_secundaria=queue_secundaria,
+                           service_types=SERVICE_TYPES)
 
 @app.route('/admin/colaborador/<int:user_id>')
 @login_required
