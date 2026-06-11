@@ -334,6 +334,7 @@ SERVICE_TYPES = {
     'Consulta': 'CNS',
     'Troca de Titularidade': 'TRT',
     'Criação de Matrícula': 'CRI',
+    'Verificação de Débitos': 'DEB',
 }
 
 @app.route('/start_task', methods=['POST'])

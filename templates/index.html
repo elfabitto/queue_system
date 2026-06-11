@@ -57,6 +57,12 @@
     border: 1px solid rgba(5, 150, 105, 0.25);
   }
 
+  .badge-deb {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+  }
+
   [data-theme="dark"] .badge-cns {
     color: #60a5fa;
     background: rgba(96, 165, 250, 0.12);
@@ -73,6 +79,12 @@
     color: #34d399;
     background: rgba(52, 211, 153, 0.12);
     border-color: rgba(52, 211, 153, 0.25);
+  }
+
+  [data-theme="dark"] .badge-deb {
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.25);
   }
 
   /* ── Hora de entrada na fila ── */
@@ -310,6 +322,11 @@
     color: #059669;
   }
 
+  .type-opt-badge.deb {
+    background: rgba(220, 38, 38, 0.15);
+    color: #dc2626;
+  }
+
   [data-theme="dark"] .type-opt-badge.cns {
     background: rgba(96, 165, 250, 0.15);
     color: #60a5fa;
@@ -323,6 +340,11 @@
   [data-theme="dark"] .type-opt-badge.cri {
     background: rgba(52, 211, 153, 0.15);
     color: #34d399;
+  }
+
+  [data-theme="dark"] .type-opt-badge.deb {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
   }
 
   .type-opt-label {
@@ -593,7 +615,6 @@
         <div class="fila-nome" style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
           {{ entry.user.username }}
           {% if entry.user_id == current_user.id %}(Você){% endif %}
-          <!-- Badge de tipo de atendimento -->
           {% if entry.status == 'Analisando' and entry.service_type %}
           {% if entry.service_type == 'Consulta' %}
           <span class="badge-type badge-cns">CNS</span>
@@ -601,6 +622,8 @@
           <span class="badge-type badge-trt">TRT</span>
           {% elif entry.service_type == 'Criação de Matrícula' %}
           <span class="badge-type badge-cri">CRI</span>
+          {% elif entry.service_type == 'Verificação de Débitos' %}
+          <span class="badge-type badge-deb">DEB</span>
           {% endif %}
           {% endif %}
         </div>
@@ -645,6 +668,10 @@
       <div class="type-opt" data-type="Criação de Matrícula">
         <span class="type-opt-badge cri">CRI</span>
         <span class="type-opt-label">Criação de Matrícula</span>
+      </div>
+      <div class="type-opt" data-type="Verificação de Débitos">
+        <span class="type-opt-badge deb">DEB</span>
+        <span class="type-opt-label">Verificação de Débitos</span>
       </div>
     </div>
 

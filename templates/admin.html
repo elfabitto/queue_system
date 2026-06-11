@@ -332,6 +332,12 @@
     border: 1px solid rgba(5, 150, 105, 0.25);
   }
 
+  .badge-deb {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+  }
+
   /* ─────────── 2 COLUNAS ─────────── */
   .two-col {
     display: grid;
@@ -790,6 +796,8 @@
                 <span class="badge-type badge-trt">TRT</span>
                 {% elif entry.service_type == 'Criação de Matrícula' %}
                 <span class="badge-type badge-cri">CRI</span>
+                {% elif entry.service_type == 'Verificação de Débitos' %}
+                <span class="badge-type badge-deb">DEB</span>
                 {% endif %}
                 {% endif %}
               </div>
@@ -864,6 +872,8 @@
                 <span class="badge-type badge-trt">TRT</span>
                 {% elif entry.service_type == 'Criação de Matrícula' %}
                 <span class="badge-type badge-cri">CRI</span>
+                {% elif entry.service_type == 'Verificação de Débitos' %}
+                <span class="badge-type badge-deb">DEB</span>
                 {% endif %}
                 {% endif %}
               </div>
@@ -930,6 +940,8 @@
               <span class="badge-type badge-trt">TRT</span>
               {% elif record.service_type == 'Criação de Matrícula' %}
               <span class="badge-type badge-cri">CRI</span>
+              {% elif record.service_type == 'Verificação de Débitos' %}
+              <span class="badge-type badge-deb">DEB</span>
               {% else %}
               <span style="color:var(--muted);font-size:0.7rem;">—</span>
               {% endif %}
